@@ -381,7 +381,8 @@ function endConversation(message='대화를 멈췄어요. 시작을 누르면 �
 }
 async function startConversation() {
  if(conversationRunning)return;
- const profile=VOICE_CATALOG.find(voice=>voice.id===$('friend-voice').value && voice.gender===friendPerson);
+ loadVoices();
+ const profile=selectedSpeechProfile();
  if(!profile || (!cloudVoicesReady && !matchingLocalVoice(profile))){notice('먼저 ‘목소리’에서 재생 가능한 음성을 선택해 주세요.');return;}
  if(!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder || !(window.AudioContext||window.webkitAudioContext)){
   notice('대화는 마이크를 사용할 수 있는 Chrome 또는 Edge에서 열어주세요.');return;
@@ -391,6 +392,8 @@ async function startConversation() {
  $('practice-status').textContent='마이크를 허용하면 AI가 먼저 질문해요.';
  let mic;
  try {
+  if(conversationComplete){turn=0;conversationComplete=false;hidden=false;resetAudio();renderPractice();}
+  const initialSpeech=speak($('question-en').textContent);
   const Audio=window.AudioContext||window.webkitAudioContext;audioContext??=new Audio();await audioContext.resume();
   if(epoch!==conversationEpoch || !conversationRunning)return;
   mic=await navigator.mediaDevices.getUserMedia({audio:true});
@@ -400,16 +403,16 @@ async function startConversation() {
   if(conversationComplete){turn=0;conversationComplete=false;hidden=false;resetAudio();}
   renderPractice();updateAmbience();notice();
   sessionLimitTimer=setTimeout(()=>{if(epoch===conversationEpoch)endConversation('대화를 잠시 마쳤어요. 시작을 눌러 이어가세요.');},300000);
-  await playSessionQuestion(epoch);
+  await playSessionQuestion(epoch,initialSpeech);
  }catch{
   mic?.getTracks().forEach(track=>track.stop());
   if(epoch===conversationEpoch){endConversation('마이크 권한을 확인한 뒤 시작을 다시 눌러주세요.');notice('마이크를 허용해야 대화를 시작할 수 있어요.');}
  }
 }
-async function playSessionQuestion(epoch) {
+async function playSessionQuestion(epoch,initialSpeech=null) {
  if(!conversationRunning || epoch!==conversationEpoch)return;
  const version=++sessionQuestionVersion;
- const ok=await speak($('question-en').textContent);
+ const ok=await (initialSpeech || speak($('question-en').textContent));
  if(!conversationRunning || epoch!==conversationEpoch || version!==sessionQuestionVersion)return;
  if(!ok){endConversation('음성을 재생하지 못해 대화를 멈췄어요. 목소리를 확인하고 다시 시작해 주세요.');return;}
  if(conversationComplete){endConversation('오늘의 대화를 마쳤어요. 다시 시작하거나 내 답변을 들어보세요.');return;}
@@ -451,13 +454,22 @@ function stopSpeech() {
  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
  listening=false;speechActive=false;updateAmbience();
 }
-function matchingLocalVoice(profile) {
+function speechProfiles(){
+ if(cloudVoicesReady)return VOICE_CATALOG.filter(voice=>voice.gender===friendPerson);
+ if(!('speechSynthesis' in window))return [];
+ const voices=speechSynthesis.getVoices().filter(voice=>/^en([_-]|$)/i.test(voice.lang));
+ const unique=[...new Map(voices.map(voice=>[voice.voiceURI||voice.name+'-'+voice.lang,voice])).values()].slice(0,10);
+ return unique.length?unique.map(voice=>({id:'device:'+encodeURIComponent(voice.voiceURI||voice.name+'-'+voice.lang),name:voice.name+' · '+voice.lang,localVoice:voice})):[{id:'device:default',name:'기기 기본 영어',defaultVoice:true}];
+}
+function selectedSpeechProfile(){return speechProfiles().find(voice=>voice.id===$('friend-voice').value);}
+function matchingLocalVoice(profile){
  if(!profile || !('speechSynthesis' in window))return null;
- return speechSynthesis.getVoices().find(v=>/^en([_-]|$)/i.test(v.lang) && v.name.toLowerCase().split(/[^a-z]+/).includes(profile.name.toLowerCase())) || null;
+ if(profile.defaultVoice)return {lang:'en-US',defaultVoice:true};
+ return profile.localVoice || speechSynthesis.getVoices().find(voice=>/^en([_-]|$)/i.test(voice.lang) && voice.name.toLowerCase().split(/[^a-z]+/).includes(profile.name.toLowerCase())) || null;
 }
 async function speak(text) {
  if(listening){stopSpeech();return false;}
- const profile=VOICE_CATALOG.find(v=>v.id===$('friend-voice').value && v.gender===friendPerson);
+ const profile=selectedSpeechProfile();
  if(!profile){notice('이 목소리를 아직 사용할 수 없어요. 선택한 음성은 전용 음성 서비스 연결 후 이용할 수 있어요.');return false;}
  const local=matchingLocalVoice(profile);
  if(!cloudVoicesReady && !local){notice('지금은 이 목소리를 재생할 수 없어요. ‘친구 설정’에서 다른 목소리를 선택해 주세요.');return false;}
@@ -491,22 +503,19 @@ async function speak(text) {
   }catch(error){if(generation!==speechGeneration)return;if(error.name!=='AbortError')fail();else finish();}
   return completion;
  }
- const utterance=new SpeechSynthesisUtterance(text);activeUtterance=utterance;utterance.lang=local.lang;utterance.rate=mode==='friend'?.92:.82;utterance.voice=local;
+ const utterance=new SpeechSynthesisUtterance(text);activeUtterance=utterance;utterance.lang=local.lang;utterance.rate=mode==='friend'?.92:.82;utterance.voice=local.defaultVoice?null:local;
  utterance.onstart=started;
  utterance.onend=finish;
  utterance.onerror=fail;
  notice(`${profile.name} 목소리를 준비하고 있어요…`);
  speechStartTimer=setTimeout(fail,6000);
- // Let cancellation finish before queueing the new utterance, and retain it until completion.
- speechQueueTimer=setTimeout(()=>{
-  if(generation!==speechGeneration)return;
-  try { if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(utterance); }
-  catch { fail(); }
- },120);
+ // Start within the user's click where possible, including iOS speech playback.
+ try{if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(utterance);}
+ catch{fail();}
  return completion;
 }
 function speakQuestion() {
- const profile=VOICE_CATALOG.find(v=>v.id===$('friend-voice').value && v.gender===friendPerson);
+ const profile=selectedSpeechProfile();
  if(cloudVoicesReady || matchingLocalVoice(profile))speak($('question-en').textContent);
 }
 function stopRecording() {
@@ -548,7 +557,7 @@ function updateRecordingUI() {
  $('restart').disabled=conversationRunning;
  $('toggle-script').disabled = false;
  ['listen-practice','hear-question'].forEach(id=>$(id).disabled=conversationRunning || readingPractice || active || recordPending);
- $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady && !matchingLocalVoice(VOICE_CATALOG.find(v=>v.id===$('friend-voice').value)));
+ $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady && !matchingLocalVoice(selectedSpeechProfile()));
  $('friend-voice').disabled=conversationRunning;document.querySelectorAll('button[data-person]').forEach(button=>button.disabled=conversationRunning);
  $('hidden-title').textContent = recordPending ? '마이크 사용을 허용해 주세요.' : active ? '지금, 당신의 이야기를 담고 있어요.' : audioURL ? '내 목소리로 이야기를 완성했어요.' : '당신의 이야기를 들려주세요.';
  updateOrbState();
@@ -684,7 +693,8 @@ async function startRecording({session=false}={}) {
 $('record').onclick=()=>{if(mode==='friend'){if(!conversationRunning)startConversation();}else if(!hidden){if(readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();$('practice-status').textContent='읽기 연습을 마쳤어요. 시작하기를 누르면 다시 연습할 수 있어요.';}else startReadingPractice();}else if(recorder?.state==='recording')stopRecording();else startRecording();};
 function loadVoices() {
  const current=$('friend-voice').value;
- const profiles=VOICE_CATALOG.filter(v=>v.gender===friendPerson);
+ const profiles=speechProfiles();
+ document.querySelector('.person-options').hidden=!cloudVoicesReady;
  $('friend-voice').replaceChildren();
  profiles.forEach(profile=>{
   const available=cloudVoicesReady || Boolean(matchingLocalVoice(profile));
@@ -692,18 +702,18 @@ function loadVoices() {
   option.dataset.available=String(available);$('friend-voice').append(option);
  });
  const options=[...$('friend-voice').options];
- const chosen=options.find(o=>o.value===current)||options.find(o=>o.dataset.available==='true')||options[0];
+ const chosen=options.find(o=>o.value===current && o.dataset.available==='true')||options.find(o=>o.dataset.available==='true')||options[0];
  $('friend-voice').value=chosen?.value||'';
  $('friend-voice').disabled=conversationRunning;
  $('preview-voice').disabled=conversationRunning || chosen?.dataset.available!=='true';
- $('voice-help').textContent=cloudVoicesReady?`목소리 ${profiles.length}개 중 골라주세요.`:options.some(o=>o.dataset.available==='true')?'이 기기에서 확인된 목소리만 들어볼 수 있어요.':`목소리 ${profiles.length}개를 준비했어요. 재생하려면 전용 음성 서비스 연결이 필요해요.`;
+ $('voice-help').textContent=cloudVoicesReady?`목소리 ${profiles.length}개 중 골라주세요.`:profiles.length?'이 기기의 영어 음성으로 읽어드려요. 목소리 들어보기로 먼저 확인해 주세요. 성별과 종류는 기기마다 달라요.':'이 브라우저는 음성 재생을 지원하지 않아요. Safari 또는 Chrome에서 열어주세요.';
 }
 loadVoices();if('speechSynthesis' in window)speechSynthesis.addEventListener('voiceschanged',loadVoices);
 if(location.protocol==='http:' || location.protocol==='https:') {
  fetch('/api/voice-status').then(r=>r.ok?r.json():null).then(status=>{cloudVoicesReady=status?.configured===true;loadVoices();}).catch(()=>{});
 }
 $('friend-voice').onchange=()=>{cancelConversationResponse();stopSpeech();loadVoices();};
-$('preview-voice').onclick=()=>{cancelConversationResponse();stopSpeech();speak('How was your day?');};
+$('preview-voice').onclick=()=>{loadVoices();cancelConversationResponse();stopSpeech();speak('How was your day?');};
 document.querySelectorAll('[data-person]').forEach(button=>{
  if(button.tagName!=='BUTTON')return;
  button.onclick=()=>{
