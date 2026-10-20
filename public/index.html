@@ -247,6 +247,14 @@ function stopMicMeter() {
  $('live-voice').classList.remove('voice-detected');
  document.querySelectorAll('.voice-wave i').forEach(bar=>bar.style.setProperty('--voice-height','.08'));
 }
+async function prepareMicMeter(){
+ const Audio=window.AudioContext||window.webkitAudioContext;
+ if(!Audio)return false;
+ audioContext??=new Audio();
+ // Unlock audio analysis from the button gesture before waiting for microphone permission.
+ if(audioContext.state==='suspended')await audioContext.resume();
+ return audioContext.state==='running';
+}
 function startMicMeter(micStream) {
  stopMicMeter();
  try {
@@ -545,6 +553,8 @@ async function startRecording({session=false}={}) {
  $('practice-status').textContent='마이크 연결 중이에요. 브라우저에서 허용을 누르면 녹음이 시작돼요.';
  let localStream;
  try {
+  if(!session)await prepareMicMeter().catch(()=>false);
+  if(epoch!==recordingEpoch)return false;
   localStream=session?conversationStream:await navigator.mediaDevices.getUserMedia({audio:true});
   if(!localStream || (session && (!conversationRunning || sessionEpoch!==conversationEpoch)))return false;
   if(epoch!==recordingEpoch){if(!session)localStream.getTracks().forEach(t=>t.stop());return false;}
@@ -739,6 +749,8 @@ async function startReadingPractice(){
  stopSpeech();resetAudio();const epoch=++readingEpoch;recordPending=true;updateRecordingUI();
  let mic;
  try{
+  if(!await prepareMicMeter())throw new Error('audio analysis unavailable');
+  if(epoch!==readingEpoch)return;
   mic=await navigator.mediaDevices.getUserMedia({audio:true});
   if(epoch!==readingEpoch || hidden || mode!=='podcast' || $('practice-panel').hidden){mic.getTracks().forEach(track=>track.stop());return;}
   readingStream=mic;readingPractice=true;
