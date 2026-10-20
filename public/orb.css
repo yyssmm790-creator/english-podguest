@@ -62,3 +62,6 @@ body[data-mode="friend"] #record[data-state="ready"]{background:#61794b;border-c
 #record{transition:none!important}
 
 @media(max-width:760px){.sound-label>span{display:block;white-space:nowrap}.sound-label{word-break:keep-all}}
+
+/* Only AI speech animates the AI. User speech is shown in the separate waveform. */
+.orb-scene:not([data-state="speaking"]) *{animation:none!important;transition:none!important}.orb-scene:not([data-state="speaking"]) .orb-core{transform:scale(1)!important}.orb-scene:not([data-state="speaking"]) .orb-ring{transform:none!important}
