@@ -274,17 +274,17 @@ function updateRecordingUI() {
  $('recording-orb').classList.toggle('is-recording', active);
  $('recording-orb').classList.toggle('is-pending', recordPending);
  const running=mode==='friend'?conversationRunning:readingPractice || active;
- const label=mode==='podcast' && !hidden?(recordPending?'마이크 연결 중…':readingPractice?'말하기 마치기':'시작하기'):mode==='friend'?(recordPending?'마이크 연결 중…':conversationRunning?'말하는 중…':'시작'):recordPending?'마이크 연결 중…':active?'녹음 마치기':'시작하기';
- const icon=mode==='friend' || !hidden?'●':running?'■':'●';
+ const label=mode==='podcast' && !hidden?(recordPending?'마이크 연결 중…':readingPractice?'말하기 마치기':'시작하기'):mode==='friend'?(conversationRunning?'멈춤':'시작'):recordPending?'마이크 연결 중…':active?'녹음 마치기':'시작하기';
+ const icon=mode==='friend'?(running?'■':'●'):!hidden?'●':running?'■':'●';
  const labelElement=$('record').querySelector('.record-label');
  const iconElement=$('record').querySelector('.record-icon');
  if(labelElement.textContent!==label)labelElement.textContent=label;
  if(iconElement.textContent!==icon)iconElement.textContent=icon;
- $('record').disabled=mode==='friend'?(conversationRunning || recordPending):recordPending;
+ $('record').disabled=mode==='friend'?false:recordPending;
  $('record').classList.toggle('recording',running);
  $('record').dataset.state=running?'running':recordPending?'connecting':'ready';
  $('record').setAttribute('aria-pressed',String(running));
- $('record').setAttribute('aria-label',mode==='friend'?(running?'답변 듣는 중':'대화 시작'):label);
+ $('record').setAttribute('aria-label',mode==='friend'?(running?'대화 멈춤':'대화 시작'):label);
  $('next-question').disabled=recordPending;
  $('restart').disabled=conversationRunning;
  $('toggle-script').disabled = false;
@@ -422,7 +422,7 @@ async function startRecording({session=false}={}) {
  }
  finally{if(epoch===recordingEpoch){recordPending=false;updateRecordingUI();if(recorder?.state!=='recording' && hidden){$('hidden-title').textContent='마이크 연결을 확인해 주세요.';$('hidden-help').textContent='마이크 권한을 확인하고 마이크를 다시 눌러주세요. 미리보기에서 권한을 제한할 수도 있어요.';}}}
 }
-$('record').onclick=()=>{if(mode==='friend'){if(!conversationRunning)startConversation();}else if(!hidden){if(readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();$('practice-status').textContent='읽기 연습을 마쳤어요. 시작하기를 누르면 다시 연습할 수 있어요.';}else startReadingPractice();}else if(recorder?.state==='recording')stopRecording();else startRecording();};
+$('record').onclick=()=>{if(mode==='friend'){if(conversationRunning)endConversation();else startConversation();}else if(!hidden){if(readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();$('practice-status').textContent='읽기 연습을 마쳤어요. 시작하기를 누르면 다시 연습할 수 있어요.';}else startReadingPractice();}else if(recorder?.state==='recording')stopRecording();else startRecording();};
 function loadVoices() {
  const current=$('friend-voice').value;
  const profiles=speechProfiles();
