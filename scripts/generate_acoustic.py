@@ -50,5 +50,5 @@ with tempfile.TemporaryDirectory() as directory:
         output.setnchannels(2); output.setsampwidth(2); output.setframerate(RATE)
         output.writeframes((mix * 32767).astype('<i2').tobytes())
     target = Path(__file__).resolve().parents[1] / 'public/audio/cafe-acoustic.mp3'
-    subprocess.run(['ffmpeg','-y','-loglevel','error','-i',str(wav),'-af','loudnorm=I=-21:TP=-3:LRA=7','-codec:a','libmp3lame','-b:a','128k',str(target)],check=True)
+    subprocess.run(['ffmpeg','-y','-loglevel','error','-i',str(wav),'-af','loudnorm=I=-15:TP=-1:LRA=7','-codec:a','libmp3lame','-b:a','128k',str(target)],check=True)
     print(f'Created {target.name}: {LENGTH:.1f}s of original guitar-style fingerpicking')

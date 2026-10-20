@@ -8,3 +8,14 @@ body[data-mode=podcast] #record[data-state=running]{background:#aa5845;color:#ff
 
 #live-voice{display:flex;flex-direction:column;align-items:center;gap:9px;min-height:62px;margin:18px 0 10px;color:#849170;font-size:12px}.voice-wave{display:flex;align-items:center;justify-content:center;gap:5px;height:35px;width:140px;padding:0 12px;border-radius:22px;background:#eaf0e1}.voice-wave i{display:block;width:5px;height:30px;border-radius:5px;background:#7c9460;transform:scaleY(var(--voice-height,.08));transition:transform 80ms linear}.voice-detected .voice-wave{background:#dce9cc}.voice-detected #live-voice-label{color:#4e723b;font-weight:600}@media(prefers-reduced-motion:reduce){.voice-wave i{transition:none}}
 body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data-mode=podcast] #record[data-state=ready]{background:#61794b;color:white}
+/* Phone touch targets and readable helper text. */
+@media(max-width:760px){
+ .round-control,.friend-question .round-control{width:44px;height:44px;min-width:44px;min-height:44px}
+ .text-button,.practice-top .text-button,.story-summary .text-button,.paper-heading>button,.sound-button,.friend-settings summary,#change-form{min-height:44px}
+ .paper-heading>button{font-size:12px}.practice-top{gap:8px;flex-wrap:wrap}
+ #practice-status,.demo-note,.notice,.voice-status,.examples p{font-size:11px;line-height:1.75}
+ .script-line small,#question-ko{font-size:13px;line-height:1.75}
+ .settings-content small{font-size:11px}.friend-settings summary,#change-form{font-size:10px}
+ header{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+ footer{padding-bottom:max(18px,env(safe-area-inset-bottom))}
+}

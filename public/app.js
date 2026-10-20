@@ -150,8 +150,8 @@ function skipConversationTurn() {
  if(conversationRunning)playSessionQuestion(conversationEpoch);
 }
 function updateAmbience() {
- const music=$('cafe-music');music.volume=.25;music.muted=false;
- $('sound-state').textContent=soundEnabled?'ON':'OFF';
+ const music=$('cafe-music');music.volume=.6;music.muted=false;
+ $('sound-state').textContent=soundEnabled?'ON':musicRequested?'준비 중':'OFF';
  $('sound').setAttribute('aria-pressed',String(musicRequested));
  $('sound').setAttribute('aria-label',musicRequested?'카페 음악 끄기':'카페 음악 켜기');
  $('sound').title='잔잔한 어쿠스틱 기타 음악 · OFF를 누를 때까지 계속 재생해요.';
@@ -254,13 +254,13 @@ function updateRecordingUI() {
  $('recording-orb').classList.toggle('is-recording', active);
  $('recording-orb').classList.toggle('is-pending', recordPending);
  const running=mode==='friend'?conversationRunning:readingPractice || active;
- const label=mode==='podcast' && !hidden?(recordPending?'마이크 연결 중…':readingPractice?'말하는 중…':'시작하기'):mode==='friend'?(recordPending?'마이크 연결 중…':conversationRunning?'말하는 중…':'시작'):recordPending?'마이크 연결 중…':active?'녹음 마치기':'시작하기';
+ const label=mode==='podcast' && !hidden?(recordPending?'마이크 연결 중…':readingPractice?'말하기 마치기':'시작하기'):mode==='friend'?(recordPending?'마이크 연결 중…':conversationRunning?'말하는 중…':'시작'):recordPending?'마이크 연결 중…':active?'녹음 마치기':'시작하기';
  const icon=mode==='friend' || !hidden?'●':running?'■':'●';
  const labelElement=$('record').querySelector('.record-label');
  const iconElement=$('record').querySelector('.record-icon');
  if(labelElement.textContent!==label)labelElement.textContent=label;
  if(iconElement.textContent!==icon)iconElement.textContent=icon;
- $('record').disabled=mode==='friend'?(conversationRunning || recordPending):recordPending || (!hidden && readingPractice);
+ $('record').disabled=mode==='friend'?(conversationRunning || recordPending):recordPending;
  $('record').classList.toggle('recording',running);
  $('record').dataset.state=running?'running':recordPending?'connecting':'ready';
  $('record').setAttribute('aria-pressed',String(running));
@@ -400,7 +400,7 @@ async function startRecording({session=false}={}) {
  }
  finally{if(epoch===recordingEpoch){recordPending=false;updateRecordingUI();if(recorder?.state!=='recording' && hidden){$('hidden-title').textContent='마이크 연결을 확인해 주세요.';$('hidden-help').textContent='마이크 권한을 확인하고 마이크를 다시 눌러주세요. 미리보기에서 권한을 제한할 수도 있어요.';}}}
 }
-$('record').onclick=()=>{if(mode==='friend'){if(!conversationRunning)startConversation();}else if(!hidden)startReadingPractice();else if(recorder?.state==='recording')stopRecording();else startRecording();};
+$('record').onclick=()=>{if(mode==='friend'){if(!conversationRunning)startConversation();}else if(!hidden){if(readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();$('practice-status').textContent='읽기 연습을 마쳤어요. 시작하기를 누르면 다시 연습할 수 있어요.';}else startReadingPractice();}else if(recorder?.state==='recording')stopRecording();else startRecording();};
 function loadVoices() {
  const current=$('friend-voice').value;
  const profiles=VOICE_CATALOG.filter(v=>v.gender===friendPerson);
@@ -464,9 +464,12 @@ $('sound').onclick=async()=>{
  const music=$('cafe-music'),version=++musicVersion;musicRequested=!musicRequested;
  if(!musicRequested){soundEnabled=false;music.pause();updateAmbience();return;}
  updateAmbience();
- try{await music.play();if(version!==musicVersion){if(!musicRequested)music.pause();return;}soundEnabled=true;updateAmbience();}
+ try{await music.play();if(version!==musicVersion){if(!musicRequested)music.pause();return;}soundEnabled=musicRequested && !music.paused;updateAmbience();}
  catch{if(version!==musicVersion)return;musicRequested=false;soundEnabled=false;updateAmbience();notice('음악을 시작하지 못했어요. 음악 버튼을 다시 눌러주세요.');}
 };
+$('cafe-music').onplaying=()=>{if(musicRequested){soundEnabled=true;updateAmbience();}};
+$('cafe-music').onwaiting=()=>{soundEnabled=false;updateAmbience();};
+$('cafe-music').onpause=()=>{if($('cafe-music').paused){soundEnabled=false;musicRequested=false;updateAmbience();}};
 $('cafe-music').onerror=()=>{musicVersion++;musicRequested=false;soundEnabled=false;updateAmbience();notice('음원을 불러오지 못했어요. 화면을 다시 열어주세요.');};
 document.addEventListener('visibilitychange',()=>{if(document.hidden && readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();}if(document.hidden && conversationRunning)endConversation('화면을 떠나 대화를 멈췄어요. 시작을 눌러 이어가세요.');});
 window.addEventListener('beforeunload',()=>{$('cafe-music').pause();cancelRecordingSession();stopSpeech();recognition?.stop();if(audioURL)URL.revokeObjectURL(audioURL);audioContext?.close();});
@@ -545,7 +548,7 @@ async function startReadingPractice(){
   readingStream=mic;readingPractice=true;
   if(!startMicMeter(mic)){readingPractice=false;readingStream=null;throw new Error('meter unavailable');}
   for(const track of mic.getTracks())track.addEventListener('ended',()=>{if(readingPractice && epoch===readingEpoch){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();notice('마이크 연결을 확인한 뒤 다시 시작해 주세요.');}},{once:true});
-  $('practice-status').textContent='편하게 읽어주세요. 내 목소리에 파형만 반응해요. 녹음은 저장하지 않아요.';notice();
+  $('practice-status').textContent='편하게 읽어주세요. 다 읽으면 같은 버튼을 눌러 마쳐주세요. 녹음은 저장하지 않아요.';notice();
  }catch{mic?.getTracks().forEach(track=>track.stop());if(epoch===readingEpoch)notice('마이크 권한을 확인하고 시작하기를 다시 눌러주세요.');}
  finally{if(epoch===readingEpoch){recordPending=false;updateRecordingUI();updateAmbience();}}
 }
