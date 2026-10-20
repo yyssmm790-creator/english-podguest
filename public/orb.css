@@ -1,0 +1,64 @@
+/* The same listening behavior, with three quiet visual personalities. */
+.friend-person{height:255px}
+.orb-scene{--level:0;--tint:#c3d9b0;--shade:#7c9f7d;--light:#fff5c9;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#e7ecda 0%,#f2f2e8 65%);border:1px solid #e0e5d5;isolation:isolate}
+.orb-scene:after{display:none}
+.orb-toolbar{position:absolute;top:15px;left:17px;right:17px;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:2}
+.orb-toolbar>span{font-size:9px;letter-spacing:.4px;color:#97a489}
+#change-form{border:0;background:#ffffff69;color:#82936e;font-size:9px;min-height:34px;padding:7px 11px;border-radius:20px;margin-right:76px}
+.friend-settings{top:14px;right:16px}
+.friend-settings summary{background:#ffffff80;border:0;min-height:34px;color:#82936e}
+.settings-content .person-options{gap:5px}
+.settings-content .person-options button{padding:9px 12px;font-size:10px;white-space:nowrap}
+.orb-field{width:120px;height:120px;position:absolute;left:50%;top:49%;transform:translate(-50%,-50%)}
+.orb-core{position:absolute;inset:0;overflow:hidden;border-radius:50%;background:radial-gradient(circle at 32% 25%,#fff8d5cc 0%,transparent 44%),radial-gradient(circle at 65% 72%,#93b9a8cc 0%,transparent 70%),linear-gradient(135deg,var(--light),var(--tint) 55%,var(--shade));box-shadow:inset 0 0 20px #ffffffa0,inset -9px -11px 22px #49755c20,0 12px 33px #647c5520;transform:scale(calc(1 + var(--level)*.16));transition:transform .08s linear,border-radius .6s ease}
+.orb-lobe{position:absolute;width:85%;height:85%;border-radius:40% 60% 60% 40%;filter:blur(10px);opacity:.65;animation:orb-flow 11s ease-in-out infinite alternate}
+.lobe-one{left:-17%;top:-16%;background:var(--light)}
+.lobe-two{right:-20%;bottom:-5%;background:var(--shade);animation-duration:9s;animation-direction:alternate-reverse}
+.lobe-three{width:63%;height:64%;right:15%;bottom:-20%;background:#c5cfeb;animation-delay:-3s;opacity:.45}
+.orb-shine{position:absolute;inset:5%;border-radius:50%;box-shadow:inset 3px 6px 15px #fff9df8c;opacity:.65}
+.orb-aura{position:absolute;inset:-20%;border-radius:50%;background:radial-gradient(circle,var(--tint),transparent 68%);filter:blur(14px);opacity:.36;animation:orb-breathe 6s ease-in-out infinite}
+.orb-ring{position:absolute;inset:-9px;border:1px solid #a9bd8b36;border-radius:50%;transition:opacity .4s,transform .4s}
+.ring-two{inset:-20px;border-color:#a9bd8b18}
+.orb-caption{position:absolute;bottom:15px;left:10px;right:10px;text-align:center}
+#orb-form-name{display:none}
+.orb-caption .friend-presence{justify-content:center;font-size:10px;color:#8a9c75;line-height:1.7;margin-top:0;min-height:17px}
+.orb-caption .friend-presence i{background:#8fa874;animation:none}
+.orb-scene[data-form="ripple"]{--tint:#b3d6d2;--shade:#6e9b9e;--light:#eff7e7;background:radial-gradient(ellipse at 50% 50%,#e1eded,#f1f3ed 68%)}
+[data-form="ripple"] .orb-core{inset:8%;box-shadow:inset 0 0 19px #fffffff0,0 0 14px #8fbcbb38}
+[data-form="ripple"] .orb-ring{border-color:#94bdb95c;inset:-3px;animation:orb-ripple 6s ease-in-out infinite}
+[data-form="ripple"] .ring-two{inset:-17px;animation-delay:-3s;opacity:.5}
+.orb-scene[data-form="cloud"]{--tint:#d0c9e4;--shade:#a49ac7;--light:#fff0df;background:radial-gradient(ellipse at 50% 50%,#ece7f0,#f4f1eb 68%)}
+[data-form="cloud"] .orb-core{border-radius:44% 56% 61% 39% / 53% 44% 56% 47%;animation:orb-cloud 10s ease-in-out infinite;box-shadow:inset 0 0 24px #ffffffa8,0 12px 30px #a39bb32b}
+[data-form="cloud"] .orb-ring{border-color:#b5a8c42d;border-radius:46% 54% 56% 44%;transform:rotate(-20deg)}
+.orb-scene[data-state="listening"] .orb-ring{transform:scale(calc(1 + var(--level)*.14));border-color:#a9bd8b77}
+.orb-scene[data-state="listening"] .orb-aura{opacity:calc(.4 + var(--level)*.5)}
+.orb-scene[data-state="listening"] .lobe-one{animation-duration:3s}
+.orb-scene[data-state="thinking"] .orb-field{animation:orb-think 5s linear infinite}
+.orb-scene[data-state="thinking"] .orb-caption i{animation:mic-pulse 1.8s ease-in-out infinite}
+.orb-scene[data-state="speaking"] .orb-core{animation:orb-speak 1.3s ease-in-out infinite}
+.orb-scene[data-state="speaking"] .orb-ring{animation:orb-speak-ring 1.3s ease-in-out infinite}
+.orb-scene[data-state="connecting"] .orb-aura{animation:mic-pulse 1.6s ease-in-out infinite}
+@keyframes orb-flow{0%{transform:translate(-6%,6%) rotate(-10deg) scale(.95)}50%{transform:translate(12%,-7%) rotate(60deg) scale(1.08)}100%{transform:translate(-8%,-10%) rotate(130deg) scale(1.02)}}
+@keyframes orb-breathe{50%{transform:scale(1.12);opacity:.5}}
+@keyframes orb-ripple{50%{transform:scale(1.08);opacity:.45}}
+@keyframes orb-cloud{50%{border-radius:58% 42% 43% 57% / 42% 58% 42% 58%}}
+@keyframes orb-think{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes orb-speak{0%,100%{transform:scale(.98)}22%{transform:scale(1.07)}46%{transform:scale(1.01)}68%{transform:scale(1.09)}85%{transform:scale(.99)}}
+@keyframes orb-speak-ring{50%{transform:scale(1.09);opacity:.42}}
+@media(max-width:760px){body[data-mode="friend"] .friend-person{height:clamp(192px,25svh,228px);margin-bottom:13px}.orb-field{width:102px;height:102px;top:50%}.orb-toolbar{top:11px;left:13px;right:13px}.orb-toolbar>span{font-size:8px}#change-form{font-size:8px;padding:7px 9px;margin-right:65px}.friend-settings{top:11px;right:13px}.friend-settings summary{font-size:8px}.orb-caption{bottom:12px}.orb-caption .friend-presence{font-size:9px}}
+@media(max-width:359px){.orb-toolbar>span{font-size:7px}#change-form{font-size:8px;margin-right:62px}.orb-field{width:96px;height:96px}}
+@media(prefers-reduced-motion:reduce){.orb-scene *{animation:none!important;transition:none!important}.orb-core{transform:none!important}.orb-field{animation:none!important}.orb-ring{transform:none!important}}
+
+body[data-mode="friend"] #hidden-script .recording-orb{display:none}body[data-mode="friend"] #hidden-script{padding:12px 0}body[data-mode="friend"] #record.recording{background:#8e775c}body[data-mode="friend"] #record.recording span{animation:none}
+
+/* Stable button nodes and a distinct running color make start/stop easy to recognize. */
+.brand{flex-direction:column;align-items:flex-start;gap:3px;letter-spacing:-.7px}.brand-en{font-size:24px;line-height:1.2;font-weight:600;white-space:nowrap}.brand-ko{font-size:11px;font-weight:400;letter-spacing:.5px;color:#8a957d}.sound-button[aria-pressed="true"]{background:#e7eddd;border-color:#b9c9a5;color:#61774e}.sound-label{white-space:nowrap}
+#record .record-label{margin:0}#record .record-icon{margin-right:8px}#record{touch-action:manipulation;transition:background-color .12s,box-shadow .12s;user-select:none;-webkit-user-select:none}
+body[data-mode="friend"] #record{background:#61794b;border:2px solid transparent;box-shadow:0 3px 9px #4d68351a}
+body[data-mode="friend"] #record[data-state="running"]{background:#b05a47;border-color:#c27b67;box-shadow:0 3px 12px #9a49362b}
+body[data-mode="friend"] #record[data-state="ready"]{background:#61794b;border-color:transparent}
+@media(max-width:760px){header{height:70px;padding:0 16px;gap:8px}.brand{gap:4px;min-width:0}.brand-en{font-size:clamp(13px,4vw,18px);letter-spacing:-.55px}.brand-ko{font-size:9px;letter-spacing:.4px}.sound-button{gap:6px;padding:7px 8px;flex-shrink:0}.sound-button .icon{width:14px;height:14px}.sound-label{display:inline;max-width:67px;white-space:normal;text-align:left;font-size:9px;line-height:1.5}#sound-state{font-size:7px;padding:3px}main,.workspace,.panel{min-height:calc(100svh - 112px)}}
+/* Start and stop are immediate state changes, not color fades. */
+#record{transition:none!important}
+
+@media(max-width:760px){.sound-label>span{display:block;white-space:nowrap}.sound-label{word-break:keep-all}}
