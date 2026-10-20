@@ -19,3 +19,5 @@ body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data
  header{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
  footer{padding-bottom:max(18px,env(safe-area-inset-bottom))}
 }
+
+.music-now{position:absolute;top:82px;right:28px;z-index:4;max-width:calc(100vw - 56px);padding:6px 12px;border-radius:20px;background:#f5f4e8e8;color:#63734d;font-size:10px;pointer-events:none}@media(max-width:760px){.music-now{top:74px;right:20px}}

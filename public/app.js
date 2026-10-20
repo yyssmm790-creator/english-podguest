@@ -11,6 +11,7 @@ let friendPerson = "female", cloudVoicesReady = false, speechAudio = null, speec
 let readingPractice=false, readingStream=null, readingEpoch=0;
 let recognition = null, voiceActive = false, listening = false, continueAfterVoice = false;
 let audioContext = null, soundEnabled = false, musicRequested = false, musicVersion = 0;
+let cafeTrackIndex=0,musicSwitching=false;
 let speechActive = false, speechGeneration = 0, activeUtterance = null;
 let speechStartTimer = null, speechEndTimer = null, speechQueueTimer = null;
 const voicePlaybackFailures = new Set();
@@ -162,7 +163,9 @@ function updateAmbience() {
  $('sound-state').textContent=soundEnabled?'ON':musicRequested?'준비 중':'OFF';
  $('sound').setAttribute('aria-pressed',String(musicRequested));
  $('sound').setAttribute('aria-label',musicRequested?'카페 음악 끄기':'카페 음악 켜기');
- $('sound').title='잔잔한 어쿠스틱 기타 음악 · OFF를 누를 때까지 계속 재생해요.';
+ $('sound').title=`${cafeTrackIndex+1}/${CAFE_TRACKS.length} ${CAFE_TRACKS[cafeTrackIndex].title} · OFF를 누를 때까지 이어 들어요.`;
+ $('music-now').hidden=!musicRequested;
+ $('music-now').textContent=`♫ ${cafeTrackIndex+1}/${CAFE_TRACKS.length} · ${CAFE_TRACKS[cafeTrackIndex].title}`;
  const portrait = $("friend-portrait");
  if (portrait) { portrait.classList.toggle("speaking", speechActive && mode === "friend"); updateOrbState(); }
 }
@@ -477,9 +480,18 @@ $('sound').onclick=async()=>{
  try{await music.play();if(version!==musicVersion){if(!musicRequested)music.pause();return;}soundEnabled=musicRequested && !music.paused;updateAmbience();}
  catch{if(version!==musicVersion)return;musicRequested=false;soundEnabled=false;updateAmbience();notice('음악을 시작하지 못했어요. 음악 버튼을 다시 눌러주세요.');}
 };
-$('cafe-music').onplaying=()=>{if(musicRequested){soundEnabled=true;updateAmbience();}};
+$('cafe-music').onplaying=()=>{musicSwitching=false;if(musicRequested){soundEnabled=true;updateAmbience();}};
 $('cafe-music').onwaiting=()=>{soundEnabled=false;updateAmbience();};
-$('cafe-music').onpause=()=>{if($('cafe-music').paused){soundEnabled=false;musicRequested=false;updateAmbience();}};
+$('cafe-music').onpause=()=>{if($('cafe-music').paused && !$('cafe-music').ended && !musicSwitching){soundEnabled=false;musicRequested=false;updateAmbience();}};
+$('cafe-music').loop=false;
+$('cafe-music').onended=async()=>{
+ if(!musicRequested)return;
+ const version=++musicVersion;musicSwitching=true;soundEnabled=false;
+ cafeTrackIndex=(cafeTrackIndex+1)%CAFE_TRACKS.length;
+ const music=$('cafe-music');music.src=CAFE_TRACKS[cafeTrackIndex].src;updateAmbience();
+ try{await music.play();if(version!==musicVersion){if(!musicRequested)music.pause();return;}musicSwitching=false;soundEnabled=musicRequested && !music.paused;updateAmbience();}
+ catch{if(version!==musicVersion)return;musicSwitching=false;musicRequested=false;soundEnabled=false;updateAmbience();notice('다음 음악을 재생하지 못했어요. 음악 버튼을 다시 눌러주세요.');}
+};
 $('cafe-music').onerror=()=>{musicVersion++;musicRequested=false;soundEnabled=false;updateAmbience();notice('음원을 불러오지 못했어요. 화면을 다시 열어주세요.');};
 document.addEventListener('visibilitychange',()=>{if(document.hidden && readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();}if(document.hidden && conversationRunning)endConversation('화면을 떠나 대화를 멈췄어요. 시작을 눌러 이어가세요.');});
 window.addEventListener('beforeunload',()=>{$('cafe-music').pause();cancelRecordingSession();stopSpeech();recognition?.stop();if(audioURL)URL.revokeObjectURL(audioURL);audioContext?.close();});
