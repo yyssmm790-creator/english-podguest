@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {handleStoryRequest} from './lib/story-service.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { VOICE_CATALOG } from './public/voices.js';
@@ -9,6 +10,12 @@ http.createServer(async (req, res) => {
   try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); }
   catch { res.writeHead(400); return res.end(); }
   const json = (status, body) => { res.writeHead(status, {'Content-Type':'application/json','Cache-Control':'no-store'}); res.end(JSON.stringify(body)); };
+  if(pathname==='/api/story'){
+    let body='';
+    try{for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>16000)return json(413,{error:'too_large'});}}catch{return json(400,{error:'invalid_body'});}
+    const result=await handleStoryRequest({method:req.method,headers:req.headers,body,clientIP:req.socket.remoteAddress});
+    res.writeHead(result.status,result.headers);return res.end(result.body);
+  }
   const region = process.env.SPEECH_REGION || '';
   const configured = Boolean(process.env.SPEECH_KEY && /^[a-z0-9]+$/.test(region));
   if (pathname === '/api/voice-status' && req.method === 'GET') return json(200, {configured});

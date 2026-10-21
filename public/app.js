@@ -4,6 +4,7 @@ const examples = {
  work: { story: '오늘 회사에서 일이 많아서 조금 지쳤어. 집에 와서 좋아하는 음악을 들으며 쉬었어. 내일은 조금 더 괜찮은 하루였으면 좋겠어.', lines: [['I had a long day at work.', '오늘 회사에서 긴 하루를 보냈어요.'], ['I felt a little tired.', '조금 지쳤어요.'], ['So I listened to my favorite music at home.', '그래서 집에서 좋아하는 음악을 들었어요.'], ['I hope tomorrow is a better day.', '내일은 더 좋은 하루이길 바라요.']], turns: [['How was your day at work?', '오늘 회사에서 어땠어?', 0], ['Oh... a long day. How did you feel?', '아… 긴 하루였구나. 기분이 어땠어?', 1], ['Mm, I hear you. What did you do after work?', '음, 그랬구나. 퇴근하고는 뭐 했어?', 2], ['That sounds nice. How about tomorrow?', '음악으로 쉬었다니 좋네. 내일은 어떨 것 같아?', 3]] },
  walk: { story: '오늘 저녁에 동네를 산책했어. 바람이 시원하고 하늘이 참 예뻤어. 별일 없는 하루였지만 걷고 나니까 기분이 좋아졌어.', lines: [['I went for a walk this evening.', '오늘 저녁에 산책했어요.'], ['The air was cool. The sky was beautiful.', '바람은 시원했고 하늘은 참 예뻤어요.'], ['It was just a simple day.', '그냥 평범한 하루였어요.'], ['But that little walk made me happy.', '하지만 그 짧은 산책 덕분에 행복했어요.']], turns: [['What did you do this evening?', '오늘 저녁에 뭐 했어?', 0], ['Oh, a walk! What was it like outside?', '오, 산책했구나! 밖은 어땠어?', 1], ['Sounds lovely. Was it a special day?', '참 좋았겠다. 특별한 하루였어?', 2], ['Mm, I see. How did the walk make you feel?', '음, 그랬구나. 산책하고 나니 기분이 어땠어?', 3]] }
 };
+let chosenLevel=1,activeExampleKey=null,personalStory=null,storyRequest=null,storyGenerationEpoch=0;
 let selected = null, mode = 'podcast', turn = 0, hidden = false, conversationComplete = false;
 let recorder = null, stream = null, audioURL = null, timeout = null;
 let recordTimer = null, recordingStarted = 0, recordingEpoch = 0, recordPending = false, playbackActive = false;
@@ -314,7 +315,7 @@ function cancelRecordingSession() {
  cancelConversationResponse();recordingEpoch++; stopRecording(); recordPending=false; updateRecordingUI();
 } 
 function showStep(step) {
- pauseDiary(); stopSpeech(); cancelRecordingSession(); $('recording-result').querySelector('audio')?.pause(); continueAfterVoice=false; if (recognition) recognition.stop(); notice();
+ cancelStoryGeneration(); pauseDiary(); stopSpeech(); cancelRecordingSession(); $('recording-result').querySelector('audio')?.pause(); continueAfterVoice=false; if (recognition) recognition.stop(); notice();
  document.body.dataset.screen=['input','choice','practice','diary'][step];
  ['input-panel','script-panel','practice-panel','diary-panel'].forEach((id,i) => $(id).hidden = i !== step);
  document.querySelectorAll('[data-step]').forEach((el,i) => { el.classList.toggle('active', i === step); if (i === step) el.setAttribute('aria-current','step'); else el.removeAttribute('aria-current'); });
@@ -332,37 +333,82 @@ function renderPractice() {
  $('friend-question').hidden = mode !== 'friend';
  $('friend-person').hidden = mode !== 'friend';
  $('next-question').hidden = mode !== 'friend';
- $('practice-label').textContent=mode==='friend'?'AI와 대화하기':'팟게스트 되어보기';
+ $('practice-label').textContent=(mode==='friend'?'AI와 대화하기':'팟게스트 되어보기')+' · '+(data.level||1)+'단계';
  $('practice-title').replaceChildren();
  $('practice-title').append(document.createTextNode(mode==='friend'?'우리, 편하게':''+'오늘의 게스트는'));
  $('practice-title').append(document.createElement('br'));
  const span=document.createElement('span'); span.textContent=mode==='friend'?'이야기해 볼까요?':'당신이에요.'; $('practice-title').append(span);
  $('practice-intro').textContent=mode==='friend'?'내 이야기를 아는 친구와, 한 문장씩 천천히.':'천천히, 내 속도로. 몇 번을 다시 해도 괜찮아요.';
  $('paper-label').textContent=mode==='friend'?'이렇게 답해볼까요?':'내 이야기';
- $('practice-disclaimer').textContent=mode==='friend'?'예시 대본에 맞춰 반응하는 체험이에요.':hidden?'마이크로 녹음한 이야기만 일기장에 저장돼요.':'내 목소리에 파형만 반응해요. 녹음 파일은 만들거나 저장하지 않아요.';
- const question=conversationComplete?conversationEndings[selected]:data.turns[turn];
+ $('practice-disclaimer').textContent=mode==='friend'?(data.isExample?'예시 이야기로 대화 연습을 해요.':'내 이야기로 만든 질문과 예시 답변이에요. 말소리가 끝나면 다음 질문으로 이어져요.'):hidden?'마이크로 녹음한 이야기만 일기장에 저장돼요.':'내 목소리에 파형만 반응해요. 녹음 파일은 만들거나 저장하지 않아요.';
+ const question=conversationComplete?(examples[selected].ending || conversationEndings[selected]):data.turns[turn];
  $('question-en').textContent=question[0]; $('question-ko').textContent=question[1];
- fillLines($('practice-script'),mode==='friend'?[data.lines[data.turns[turn][2]]]:data.lines);
+ fillLines($('practice-script'),mode==='friend'?[(data.answerLines || data.lines)[data.turns[turn][2]]]:data.lines);
  $('next-question').textContent=conversationComplete || turn===data.turns.length-1?'다시 대화하기 ↺':'다음 질문 →';
  $('practice-script').hidden=hidden; $('hidden-script').hidden=!hidden;
  $('toggle-script').textContent=hidden?'대본 다시 보기':mode==='friend'?'대본 가리기':'가리며 말하기'; $('toggle-script').setAttribute('aria-pressed',String(hidden));
  $('practice-status').textContent=mode==='podcast'?(hidden?'마이크를 눌러 녹음하고, 다시 눌러 마치면 일기장에 저장돼요.':'시작하기를 누르고 편하게 읽어주세요. 내 목소리에 파형이 움직여요.'):conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
  updateRecordingUI();
 }
-document.querySelectorAll('[data-example]').forEach(button => button.addEventListener('click', () => { selected=button.dataset.example; $('story').value=examples[selected].story; count(); showWriting(); notice(); }));
-$('story').addEventListener('input',()=>{ count(); notice(); });
-$('make-script').addEventListener('click',()=>{
- const story=$('story').value.trim(); if(!story){ notice('오늘의 이야기를 적거나, 아래 예시 하나를 골라주세요.'); $('story').focus(); return; }
- selected=Object.keys(examples).find(key=>examples[key].story===story);
-
- $('story-summary').textContent=story; showStep(1);
+function syncLevels(){
+ document.querySelectorAll('button[data-level]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.level)===chosenLevel)));
+}
+function setStoryBusy(busy){
+ $('make-script').disabled=busy;$('make-script').setAttribute('aria-busy',String(busy));
+ $('make-script').textContent=busy?'내 이야기로 대본 만드는 중…':'내 이야기로 영어 만들기';
+ $('story').readOnly=busy;$('voice-tab').disabled=busy;$('write-tab').disabled=busy;
+ document.querySelectorAll('button[data-level],button[data-example]').forEach(button=>button.disabled=busy);
+ $('generation-progress').hidden=!busy;
+}
+function cancelStoryGeneration(){
+ if(!storyRequest)return;
+ storyGenerationEpoch++;storyRequest.abort();storyRequest=null;setStoryBusy(false);
+}
+function applyStoryLevel(){
+ if(activeExampleKey){
+  const original=examples[activeExampleKey];
+  selected=`sample-${activeExampleKey}-${chosenLevel}`;
+  examples[selected]={...original,lines:EXAMPLE_UPGRADES[activeExampleKey]?.[chosenLevel]||original.lines,level:chosenLevel,isExample:true,ending:conversationEndings[activeExampleKey]};
+ }else if(personalStory){
+  const level=personalStory.result.levels.find(item=>item.level===chosenLevel);
+  selected=`personal-${chosenLevel}`;
+  examples[selected]={story:personalStory.source,title:personalStory.result.title,level:chosenLevel,isExample:false,
+   lines:level.podcast.map(line=>[line.en,line.ko]),answerLines:level.dialogue.map(item=>[item.answer.en,item.answer.ko]),
+   turns:level.dialogue.map((item,index)=>[item.question.en,item.question.ko,index]),ending:[level.closing.en,level.closing.ko]};
+ }
+ if(selected){$('story-summary').textContent=examples[selected].story;$('story-kind').textContent=activeExampleKey?'예시 이야기 · '+chosenLevel+'단계':'내 이야기 · '+chosenLevel+'단계';}
+ syncLevels();
+}
+document.querySelectorAll('button[data-level]').forEach(button=>button.onclick=()=>{chosenLevel=Number(button.dataset.level);syncLevels();if(!$('script-panel').hidden)applyStoryLevel();});
+document.querySelectorAll('[data-example]').forEach(button=>button.addEventListener('click',()=>{cancelStoryGeneration();activeExampleKey=button.dataset.example;selected=activeExampleKey;$('story').value=examples[activeExampleKey].story;count();showWriting();notice();}));
+$('story').addEventListener('input',()=>{activeExampleKey=null;count();notice();});
+const storyErrors={ai_auth_error:'AI 연결을 확인해야 해요. 적은 이야기는 그대로 남아 있어요. 잠시 후 다시 시도해 주세요.',ai_model_unavailable:'지금 AI 연결을 확인하고 있어요. 예시 이야기로 먼저 연습할 수 있어요.',ai_quota:'지금은 AI 사용 한도로 대본을 만들 수 없어요. 예시 이야기는 연습할 수 있어요.',ai_not_configured:'AI 연결이 아직 준비되지 않았어요. 적은 이야기는 그대로 남아 있어요. 예시 이야기는 바로 연습할 수 있어요.',too_many_requests:'짧은 시간에 여러 번 만들었어요. 잠시 쉬었다 다시 시도해 주세요.',ai_busy:'지금 AI가 바빠요. 잠시 후 다시 눌러주세요.',ai_timeout:'AI가 대본을 만드는 데 시간이 걸리고 있어요. 이야기는 남아 있으니 다시 시도해 주세요.',invalid_story:'오늘 있었던 일을 조금 더 들려주세요. 2,000자 안에서 적을 수 있어요.',generation_refused:'이 이야기로는 대본을 만들지 못했어요. 내용을 조금 바꾸어 다시 시도해 주세요.'};
+$('make-script').addEventListener('click',async()=>{
+ const source=$('story').value.trim();
+ if(!source){notice('오늘의 이야기를 적거나, 아래 예시 하나를 골라주세요.');$('story').focus();return;}
+ if(storyRequest)return;
+ continueAfterVoice=false;recognition?.stop();
+ activeExampleKey=['coffee','work','walk'].find(key=>examples[key].story===source)||null;
+ if(activeExampleKey || personalStory?.source===source){applyStoryLevel();showStep(1);return;}
+ const id=++storyGenerationEpoch;const controller=new AbortController();storyRequest=controller;setStoryBusy(true);notice();
+ try{
+  const response=await fetch('/api/story',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({story:source}),signal:controller.signal});
+  const body=await response.json().catch(()=>null);
+  if(id!==storyGenerationEpoch)return;
+  if(!response.ok)throw new Error(storyErrors[body?.error]||'대본을 만들지 못했어요. 이야기는 그대로 남아 있어요. 잠시 후 다시 시도해 주세요.');
+  const result=normalizeStoryResult(body);
+  personalStory={source,result};activeExampleKey=null;applyStoryLevel();
+  storyRequest=null;setStoryBusy(false);showStep(1);
+ }catch(error){if(id===storyGenerationEpoch && error.name!=='AbortError')notice(error.message==='invalid_story_result'?'AI 대본을 확인하지 못했어요. 다시 시도해 주세요.':error.message==='Failed to fetch'?'인터넷 연결을 확인하고 다시 시도해 주세요.':error.message);}
+ finally{if(id===storyGenerationEpoch){storyRequest=null;setStoryBusy(false);}}
 });
+$('cancel-generation').onclick=()=>{cancelStoryGeneration();notice('작성을 취소했어요. 이야기는 그대로 남아 있어요.');};
 $('edit-story').onclick=()=>showStep(0);
-document.querySelectorAll('button[data-mode]').forEach(button=>button.onclick=()=>{ if(!selected){notice('내 이야기를 입력했어요. 아직 자유 입력의 영어 변환은 연결 전이라, ‘이야기 바꾸기’에서 예시를 선택하면 연습을 체험할 수 있어요.');return;} mode=button.dataset.mode; turn=0; hidden=false;conversationComplete=false; resetAudio(); showStep(2); renderPractice(); if(mode==='friend')chooseOrbForm(); });
+document.querySelectorAll('button[data-mode]').forEach(button=>button.onclick=()=>{ if(!selected || !examples[selected]){notice('먼저 내 이야기로 영어 대본을 만들어주세요.');return;} mode=button.dataset.mode; turn=0; hidden=false;conversationComplete=false; resetAudio(); showStep(2); renderPractice(); if(mode==='friend')chooseOrbForm(); });
 $('back-script').onclick=()=>showStep(1);
 $('toggle-script').onclick=()=>{if(mode==='podcast'){cancelRecordingSession();resetAudio();}hidden=!hidden;renderPractice();};
 $('hear-question').onclick=()=>{cancelConversationResponse();speak($('question-en').textContent);};
-$('listen-practice').onclick=()=>speak(mode==='friend'?examples[selected].lines[examples[selected].turns[turn][2]][0]:examples[selected].lines.map(l=>l[0]).join(' '));
+$('listen-practice').onclick=()=>speak(mode==='friend'?(examples[selected].answerLines || examples[selected].lines)[examples[selected].turns[turn][2]][0]:examples[selected].lines.map(l=>l[0]).join(' '));
 $('next-question').onclick=skipConversationTurn;
 $('restart').onclick=()=>{ cancelRecordingSession(); stopSpeech(); resetAudio(); turn=0;conversationComplete=false;hidden=false;renderPractice(); notice('괜찮아요. 처음부터 천천히 다시 해봐요.'); };
 async function startRecording({session=false}={}) {
@@ -393,11 +439,12 @@ async function startRecording({session=false}={}) {
   const takeStarted=Date.now();
   const takeStory=!session?examples[selected]?.story:null;
   const takeLines=!session?examples[selected]?.lines.map(line=>[...line]):null;
+  const takeTitle=!session?examples[selected]?.title:null;const takeLevel=!session?examples[selected]?.level:null;
   localRecorder.onstop=()=>{
    if(!session)localStream.getTracks().forEach(t=>t.stop());
    if(!session && localChunks.length){
     const takeBlob=new Blob(localChunks,{type:localRecorder.mimeType});
-    savePodcastTake(takeBlob,takeStarted,Math.max(0,(Date.now()-takeStarted)/1000),takeStory,takeLines);
+    savePodcastTake(takeBlob,takeStarted,Math.max(0,(Date.now()-takeStarted)/1000),takeStory,takeLines,takeTitle,takeLevel);
    }
    if(epoch!==recordingEpoch)return;
    if(!session)stopReadingFollow();
@@ -518,7 +565,7 @@ $('cafe-music').onended=async()=>{
 };
 $('cafe-music').onerror=()=>{musicVersion++;musicRequested=false;soundEnabled=false;updateAmbience();notice('음원을 불러오지 못했어요. 화면을 다시 열어주세요.');};
 document.addEventListener('visibilitychange',()=>{if(document.hidden && readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();}if(document.hidden && conversationRunning)endConversation('화면을 떠나 대화를 멈췄어요. 시작을 눌러 이어가세요.');});
-window.addEventListener('beforeunload',()=>{$('cafe-music').pause();cancelRecordingSession();stopSpeech();recognition?.stop();if(audioURL)URL.revokeObjectURL(audioURL);audioContext?.close();});
+window.addEventListener('beforeunload',()=>{cancelStoryGeneration();$('cafe-music').pause();cancelRecordingSession();stopSpeech();recognition?.stop();if(audioURL)URL.revokeObjectURL(audioURL);audioContext?.close();});
 
 $('studio-record').onclick=()=>{if(recorder?.state==='recording')stopRecording();else startRecording();};
 const diaryStore=new PodcastDiaryStore();
@@ -528,8 +575,8 @@ function pauseDiary(){
  $('diary-list').querySelectorAll('audio').forEach(audio=>audio.pause());
  diaryURLs.forEach(url=>URL.revokeObjectURL(url));diaryURLs=[];
 }
-async function savePodcastTake(blob,createdAt,seconds,story,lines){
- const entry={id:crypto.randomUUID(),createdAt,seconds,story,lines,blob,title:`${new Date(createdAt).toLocaleDateString('ko-KR')} 나의 이야기`};
+async function savePodcastTake(blob,createdAt,seconds,story,lines,title,level){
+ const entry={id:crypto.randomUUID(),createdAt,seconds,story,lines,blob,level:level||1,title:title||`${new Date(createdAt).toLocaleDateString('ko-KR')} 나의 이야기`};
  try{await diaryStore.put(entry);notice('팟게스트 일기장에 저장했어요. 일기장에서 제목을 바꾸고 다시 들을 수 있어요.');}
  catch{unsavedTakes.set(entry.id,entry);notice('브라우저에 저장하지 못했어요. 일기장에서 녹음을 내려받아 주세요. 이 창을 닫으면 미저장 녹음은 사라져요.');}
  if(document.body.dataset.screen==='diary')renderDiary();
@@ -554,7 +601,7 @@ async function renderDiary(){
  $('diary-list').replaceChildren();
  for(const entry of entries){
   const card=document.createElement('article');card.className='diary-entry';
-  const date=document.createElement('small');date.textContent=new Date(entry.createdAt).toLocaleString('ko-KR')+` · ${Math.floor(entry.seconds/60)}분 ${Math.round(entry.seconds%60)}초`;
+  const date=document.createElement('small');date.textContent=new Date(entry.createdAt).toLocaleString('ko-KR')+` · ${Math.floor(entry.seconds/60)}분 ${Math.round(entry.seconds%60)}초`+(entry.level?' · '+entry.level+'단계':'');
   const label=document.createElement('label');label.textContent='이야기 제목';label.htmlFor=`title-${entry.id}`;
   const input=document.createElement('input');input.id=label.htmlFor;input.value=entry.title;input.maxLength=80;
   const save=document.createElement('button');save.className='text-button';save.textContent='제목 저장';

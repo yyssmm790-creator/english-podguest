@@ -119,6 +119,8 @@ body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data
 }
 
 .music-now{position:absolute;top:82px;right:28px;z-index:4;max-width:calc(100vw - 56px);padding:6px 12px;border-radius:20px;background:#f5f4e8e8;color:#63734d;font-size:10px;pointer-events:none}@media(max-width:760px){.music-now{top:74px;right:20px}}
+.story-levels{border:0;padding:0;margin:16px 0}.story-levels legend{font-size:12px;color:#78876a;margin-bottom:9px}.level-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.level-options button{min-height:54px;padding:9px 5px;border:1px solid #dce2cf;border-radius:12px;background:#f6f6ee;color:#7d8a6f}.level-options strong,.level-options small{display:block}.level-options strong{font-size:13px;font-weight:600}.level-options small{font-size:10px;margin-top:4px}.level-options [aria-pressed=true]{background:#e4ecd8;color:#4e673e;border-color:#93a87b;box-shadow:inset 0 0 0 1px #93a87b}.story-privacy{font-size:10px;color:#879178;line-height:1.6;margin:10px 0 0}#generation-progress{text-align:center;margin:12px 0 0;color:#61774d;font-size:12px;line-height:1.8}#generation-progress .text-button{min-height:44px;font-size:12px}#make-script[aria-busy=true]{opacity:.8}.choice-card .story-levels{margin:12px 0 16px}#story-kind{margin:0 0 14px;font-size:11px}@media(max-width:760px){.story-privacy{font-size:11px}.level-options small{font-size:10px}.story-levels legend{font-size:12px}}
+@media(max-width:760px){.input-card textarea,.diary-entry input,#friend-voice{font-size:16px}}
 </style></head>
 <body data-screen="input" data-mode="podcast">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="icon-sound" viewBox="0 0 24 24"><path d="M11 5L5 9H2v6h3l6 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol><symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-3 2 2-6a9 9 0 1 1 18-5Z"/><path d="M7 10h10M7 14h6"/></symbol><symbol id="icon-pen" viewBox="0 0 24 24"><path d="m15 3 6 6M3 21l2-7L17 2l5 5L10 19z"/></symbol></defs></svg>
@@ -130,15 +132,15 @@ body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data
   <div id="input-panel" class="panel">
    <button class="diary-open text-button" type="button">내 팟게스트 일기장 ↗</button><div class="input-heading"><span class="eyebrow">TODAY, IN YOUR OWN WORDS</span><h1>오늘, 어떤 하루였나요?</h1><p>한국어로 편하게 들려주세요.</p></div>
    <div class="input-dock">
-    <div class="input-card" id="writing-area" hidden><label class="sr-only" for="story">오늘 있었던 일</label><textarea id="story" maxlength="2000" placeholder="오늘 있었던 일, 생각나는 대로…"></textarea><div class="input-bottom"><span id="input-hint">짧게 적어도 괜찮아요.</span><span id="count">0 / 2,000</span></div><button class="primary" id="make-script">이 이야기로 말해보기 <svg class="icon"><use href="#icon-arrow"/></svg></button></div>
+    <div class="input-card" id="writing-area" hidden><label class="sr-only" for="story">오늘 있었던 일</label><textarea id="story" maxlength="2000" placeholder="오늘 있었던 일, 생각나는 대로…"></textarea><div class="input-bottom"><span id="input-hint">짧게 적어도 괜찮아요.</span><span id="count">0 / 2,000</span></div><fieldset class="story-levels"><legend>어떤 영어로 말해볼까요?</legend><div class="level-options"><button type="button" data-level="1" aria-pressed="true"><strong>1단계</strong><small>아주 쉽게</small></button><button type="button" data-level="2" aria-pressed="false"><strong>2단계</strong><small>자연스럽게</small></button><button type="button" data-level="3" aria-pressed="false"><strong>3단계</strong><small>조금 더 풍부하게</small></button></div></fieldset><button class="primary" id="make-script">내 이야기로 영어 만들기 <svg class="icon"><use href="#icon-arrow"/></svg></button><p class="story-privacy">대본을 만들 때 이야기가 AI 서비스로 전송돼요.</p><div id="generation-progress" hidden><p id="generation-status" role="status" aria-live="polite">내 이야기로 세 단계의 영어 대본을 만들고 있어요…</p><button type="button" id="cancel-generation" class="text-button">취소 · 이야기 계속 쓰기</button></div></div>
     <button id="voice-tab" class="hero-mic" aria-label="마이크를 눌러 오늘의 이야기 말하기" aria-pressed="false"><svg class="icon"><use href="#icon-mic"/></svg><span>눌러서 이야기하기</span></button>
     <div id="voice-status" class="voice-status" role="status">두서없어도 괜찮아요. 당신의 이야기니까.</div>
     <button class="write-button" id="write-tab"><svg class="icon"><use href="#icon-pen"/></svg><span>글로 남기기</span></button>
-    <details class="examples"><summary>먼저 예시로 둘러볼까요? <span>↗</span></summary><div class="example-row"><button data-example="coffee">☕ 혼자 마신 커피</button><button data-example="work">☁ 지친 하루</button><button data-example="walk">🌿 저녁 산책</button></div><p>예시 이야기로 연습하는 체험 버전이에요.</p></details>
+    <details class="examples"><summary>먼저 예시로 둘러볼까요? <span>↗</span></summary><div class="example-row"><button data-example="coffee">☕ 혼자 마신 커피</button><button data-example="work">☁ 지친 하루</button><button data-example="walk">🌿 저녁 산책</button></div><p>예시 대본은 AI 연결 없이도 둘러볼 수 있어요.</p></details>
    </div>
   </div>
   <div id="script-panel" class="panel" hidden>
-   <div class="choice-card"><span class="eyebrow">YOUR STORY IS READY</span><h1>어떻게 말해볼까요?</h1><div class="story-summary"><p id="story-summary"></p><button id="edit-story" class="text-button">이야기 바꾸기</button></div><div class="mode-options"><button data-mode="friend"><span class="mode-icon"><svg class="icon"><use href="#icon-chat"/></svg></span><span><strong>AI와 대화하기</strong><small>친구와 한마디씩 나누기</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button><button data-mode="podcast"><span class="mode-icon"><svg class="icon"><use href="#icon-mic"/></svg></span><span><strong>팟게스트 되어보기</strong><small>내 이야기를 들려주기</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button></div><p class="gentle-note">같은 이야기로, 몇 번이든 편하게.</p></div>
+   <div class="choice-card"><span class="eyebrow">YOUR STORY IS READY</span><h1>어떻게 말해볼까요?</h1><div class="story-summary"><p id="story-summary"></p><button id="edit-story" class="text-button">이야기 바꾸기</button></div><fieldset class="story-levels"><legend>같은 이야기, 다른 영어</legend><div class="level-options"><button type="button" data-level="1" aria-pressed="true"><strong>1단계</strong><small>아주 쉽게</small></button><button type="button" data-level="2" aria-pressed="false"><strong>2단계</strong><small>자연스럽게</small></button><button type="button" data-level="3" aria-pressed="false"><strong>3단계</strong><small>조금 더 풍부하게</small></button></div></fieldset><p id="story-kind" class="gentle-note"></p><div class="mode-options"><button data-mode="friend"><span class="mode-icon"><svg class="icon"><use href="#icon-chat"/></svg></span><span><strong>AI와 대화하기</strong><small>친구와 한마디씩 나누기</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button><button data-mode="podcast"><span class="mode-icon"><svg class="icon"><use href="#icon-mic"/></svg></span><span><strong>팟게스트 되어보기</strong><small>내 이야기를 들려주기</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button></div><p class="gentle-note">같은 이야기로, 몇 번이든 편하게.</p></div>
   </div>
   <div id="practice-panel" class="panel" hidden>
    <div class="practice-shell"><div class="practice-top"><button id="back-script" class="text-button">← 돌아가기</button><button class="diary-open text-button" type="button">일기장 ↗</button><span id="practice-label">팟게스트 되어보기</span></div><h1 class="sr-only" id="practice-title">말해보기</h1><p class="sr-only" id="practice-intro"></p>
@@ -266,12 +268,47 @@ const CAFE_TRACKS = [
  }
 ];
 
+// Shared response validation. Contains no provider configuration or credentials.
+function normalizeStoryResult(value) {
+ const object=v=>v && typeof v==='object' && !Array.isArray(v);
+ const string=(v,max)=>typeof v==='string' && v.trim().length>0 && v.length<=max;
+ const line=v=>object(v) && string(v.en,360) && string(v.ko,360);
+ if(!object(value) || !string(value.title,80) || !Array.isArray(value.levels) || value.levels.length!==3)throw new Error('invalid_story_result');
+ const seen=new Set();
+ const levels=value.levels.map(item=>{
+  if(!object(item) || ![1,2,3].includes(item.level) || seen.has(item.level))throw new Error('invalid_story_result');
+  seen.add(item.level);
+  if(!Array.isArray(item.podcast) || item.podcast.length<1 || item.podcast.length>8 || !item.podcast.every(line))throw new Error('invalid_story_result');
+  if(!Array.isArray(item.dialogue) || item.dialogue.length<1 || item.dialogue.length>6 || !item.dialogue.every(turn=>object(turn) && line(turn.question) && line(turn.answer)) || !line(item.closing))throw new Error('invalid_story_result');
+  const clean=v=>({en:v.en.trim(),ko:v.ko.trim()});
+  return {level:item.level,podcast:item.podcast.map(clean),dialogue:item.dialogue.map(turn=>({question:clean(turn.question),answer:clean(turn.answer)})),closing:clean(item.closing)};
+ });
+ return {title:value.title.trim(),levels:levels.sort((a,b)=>a.level-b.level)};
+}
+
+// Handwritten examples remain usable without an AI key and are labelled as examples.
+const EXAMPLE_UPGRADES={
+ coffee:{
+  2:[['After sending the kids off, I had coffee at a café.','아이들을 보내고 카페에서 커피를 마셨어요.'],['I enjoyed a quiet moment on my own.','혼자 조용한 시간을 즐겼어요.'],['It was only ten minutes, but it felt so good.','겨우 10분이었지만 정말 좋았어요.'],['That little break was just what I needed.','그 짧은 휴식이 딱 필요했어요.']],
+  3:[['Once I sent the kids off, I took a little time for myself at a café.','아이들을 보내고 카페에서 잠시 나만의 시간을 가졌어요.'],['Sitting quietly with my coffee felt like a much-needed break.','커피를 마시며 조용히 앉아 있으니 꼭 필요한 휴식처럼 느껴졌어요.'],['It was just ten minutes, yet that small moment meant a lot to me.','딱 10분이었지만 그 짧은 순간이 제게 큰 의미가 있었어요.'],['Sometimes a little time alone is exactly what I need.','가끔은 혼자만의 짧은 시간이 딱 필요한 것 같아요.']]
+ },
+ work:{
+  2:[['I had a lot to do at work today.','오늘 회사에서 할 일이 많았어요.'],['By the time I got home, I felt a little tired.','집에 왔을 때는 조금 지쳤어요.'],['I relaxed at home with my favorite music.','집에서 좋아하는 음악을 들으며 쉬었어요.'],['I hope tomorrow will be a little better.','내일은 조금 더 괜찮았으면 좋겠어요.']],
+  3:[['Today was busy at work, and I felt a little worn out.','오늘은 회사에서 바빴고 조금 지쳤어요.'],['After I got home, I gave myself some time to rest.','집에 와서는 잠시 쉴 시간을 가졌어요.'],['I put on my favorite music and took it easy.','좋아하는 음악을 틀고 편히 쉬었어요.'],['Hopefully, tomorrow will feel a little easier than today.','내일은 오늘보다 조금 더 편안한 하루가 되면 좋겠어요.']]
+ },
+ walk:{
+  2:[['I took a walk around my neighborhood this evening.','오늘 저녁에 동네를 산책했어요.'],['The breeze was cool, and the sky looked beautiful.','바람이 시원했고 하늘이 아름다웠어요.'],['Nothing special happened today.','오늘 특별한 일은 없었어요.'],['Still, that short walk put me in a good mood.','그래도 그 짧은 산책 덕분에 기분이 좋아졌어요.']],
+  3:[['This evening, I went for a walk around my neighborhood.','오늘 저녁에는 동네를 산책했어요.'],['There was a cool breeze, and the sky was lovely to look at.','시원한 바람이 불었고 하늘이 보기 참 좋았어요.'],['It was an ordinary day, without anything particularly special.','특별한 일 없이 평범한 하루였어요.'],['Even so, that little walk was enough to make me feel happier.','그렇지만 그 짧은 산책만으로도 기분이 더 좋아졌어요.']]
+ }
+};
+
 const $ = (id) => document.getElementById(id);
 const examples = {
  coffee: { story: '오늘 애들 보내고 혼자 카페에 가서 커피를 마셨어. 잠깐이지만 조용히 나만의 시간을 보내니까 너무 좋더라. 딱 10분이었는데 정말 필요한 시간이었어.', lines: [['I had some coffee alone today.', '오늘 혼자 커피를 마셨어요.'], ['It was quiet. And I loved it.', '조용했어요. 그게 참 좋았어요.'], ['Just ten minutes for myself.', '딱 10분, 나만의 시간.'], ['I really needed that.', '정말 필요한 시간이었어요.']], turns: [['What did you do this morning?', '오늘 아침에 뭐 했어?', 0], ['Oh, nice. How was it?', '오, 좋네. 어땠어?', 1], ['Mm, that sounds lovely. Was it a short break?', '음, 참 좋았겠다. 잠깐 쉬었던 거야?', 2], ['I get that. Did it help you feel better?', '그 마음 알 것 같아. 기분이 좀 나아졌어?', 3]] },
  work: { story: '오늘 회사에서 일이 많아서 조금 지쳤어. 집에 와서 좋아하는 음악을 들으며 쉬었어. 내일은 조금 더 괜찮은 하루였으면 좋겠어.', lines: [['I had a long day at work.', '오늘 회사에서 긴 하루를 보냈어요.'], ['I felt a little tired.', '조금 지쳤어요.'], ['So I listened to my favorite music at home.', '그래서 집에서 좋아하는 음악을 들었어요.'], ['I hope tomorrow is a better day.', '내일은 더 좋은 하루이길 바라요.']], turns: [['How was your day at work?', '오늘 회사에서 어땠어?', 0], ['Oh... a long day. How did you feel?', '아… 긴 하루였구나. 기분이 어땠어?', 1], ['Mm, I hear you. What did you do after work?', '음, 그랬구나. 퇴근하고는 뭐 했어?', 2], ['That sounds nice. How about tomorrow?', '음악으로 쉬었다니 좋네. 내일은 어떨 것 같아?', 3]] },
  walk: { story: '오늘 저녁에 동네를 산책했어. 바람이 시원하고 하늘이 참 예뻤어. 별일 없는 하루였지만 걷고 나니까 기분이 좋아졌어.', lines: [['I went for a walk this evening.', '오늘 저녁에 산책했어요.'], ['The air was cool. The sky was beautiful.', '바람은 시원했고 하늘은 참 예뻤어요.'], ['It was just a simple day.', '그냥 평범한 하루였어요.'], ['But that little walk made me happy.', '하지만 그 짧은 산책 덕분에 행복했어요.']], turns: [['What did you do this evening?', '오늘 저녁에 뭐 했어?', 0], ['Oh, a walk! What was it like outside?', '오, 산책했구나! 밖은 어땠어?', 1], ['Sounds lovely. Was it a special day?', '참 좋았겠다. 특별한 하루였어?', 2], ['Mm, I see. How did the walk make you feel?', '음, 그랬구나. 산책하고 나니 기분이 어땠어?', 3]] }
 };
+let chosenLevel=1,activeExampleKey=null,personalStory=null,storyRequest=null,storyGenerationEpoch=0;
 let selected = null, mode = 'podcast', turn = 0, hidden = false, conversationComplete = false;
 let recorder = null, stream = null, audioURL = null, timeout = null;
 let recordTimer = null, recordingStarted = 0, recordingEpoch = 0, recordPending = false, playbackActive = false;
@@ -582,7 +619,7 @@ function cancelRecordingSession() {
  cancelConversationResponse();recordingEpoch++; stopRecording(); recordPending=false; updateRecordingUI();
 } 
 function showStep(step) {
- pauseDiary(); stopSpeech(); cancelRecordingSession(); $('recording-result').querySelector('audio')?.pause(); continueAfterVoice=false; if (recognition) recognition.stop(); notice();
+ cancelStoryGeneration(); pauseDiary(); stopSpeech(); cancelRecordingSession(); $('recording-result').querySelector('audio')?.pause(); continueAfterVoice=false; if (recognition) recognition.stop(); notice();
  document.body.dataset.screen=['input','choice','practice','diary'][step];
  ['input-panel','script-panel','practice-panel','diary-panel'].forEach((id,i) => $(id).hidden = i !== step);
  document.querySelectorAll('[data-step]').forEach((el,i) => { el.classList.toggle('active', i === step); if (i === step) el.setAttribute('aria-current','step'); else el.removeAttribute('aria-current'); });
@@ -600,37 +637,82 @@ function renderPractice() {
  $('friend-question').hidden = mode !== 'friend';
  $('friend-person').hidden = mode !== 'friend';
  $('next-question').hidden = mode !== 'friend';
- $('practice-label').textContent=mode==='friend'?'AI와 대화하기':'팟게스트 되어보기';
+ $('practice-label').textContent=(mode==='friend'?'AI와 대화하기':'팟게스트 되어보기')+' · '+(data.level||1)+'단계';
  $('practice-title').replaceChildren();
  $('practice-title').append(document.createTextNode(mode==='friend'?'우리, 편하게':''+'오늘의 게스트는'));
  $('practice-title').append(document.createElement('br'));
  const span=document.createElement('span'); span.textContent=mode==='friend'?'이야기해 볼까요?':'당신이에요.'; $('practice-title').append(span);
  $('practice-intro').textContent=mode==='friend'?'내 이야기를 아는 친구와, 한 문장씩 천천히.':'천천히, 내 속도로. 몇 번을 다시 해도 괜찮아요.';
  $('paper-label').textContent=mode==='friend'?'이렇게 답해볼까요?':'내 이야기';
- $('practice-disclaimer').textContent=mode==='friend'?'예시 대본에 맞춰 반응하는 체험이에요.':hidden?'마이크로 녹음한 이야기만 일기장에 저장돼요.':'내 목소리에 파형만 반응해요. 녹음 파일은 만들거나 저장하지 않아요.';
- const question=conversationComplete?conversationEndings[selected]:data.turns[turn];
+ $('practice-disclaimer').textContent=mode==='friend'?(data.isExample?'예시 이야기로 대화 연습을 해요.':'내 이야기로 만든 질문과 예시 답변이에요. 말소리가 끝나면 다음 질문으로 이어져요.'):hidden?'마이크로 녹음한 이야기만 일기장에 저장돼요.':'내 목소리에 파형만 반응해요. 녹음 파일은 만들거나 저장하지 않아요.';
+ const question=conversationComplete?(examples[selected].ending || conversationEndings[selected]):data.turns[turn];
  $('question-en').textContent=question[0]; $('question-ko').textContent=question[1];
- fillLines($('practice-script'),mode==='friend'?[data.lines[data.turns[turn][2]]]:data.lines);
+ fillLines($('practice-script'),mode==='friend'?[(data.answerLines || data.lines)[data.turns[turn][2]]]:data.lines);
  $('next-question').textContent=conversationComplete || turn===data.turns.length-1?'다시 대화하기 ↺':'다음 질문 →';
  $('practice-script').hidden=hidden; $('hidden-script').hidden=!hidden;
  $('toggle-script').textContent=hidden?'대본 다시 보기':mode==='friend'?'대본 가리기':'가리며 말하기'; $('toggle-script').setAttribute('aria-pressed',String(hidden));
  $('practice-status').textContent=mode==='podcast'?(hidden?'마이크를 눌러 녹음하고, 다시 눌러 마치면 일기장에 저장돼요.':'시작하기를 누르고 편하게 읽어주세요. 내 목소리에 파형이 움직여요.'):conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
  updateRecordingUI();
 }
-document.querySelectorAll('[data-example]').forEach(button => button.addEventListener('click', () => { selected=button.dataset.example; $('story').value=examples[selected].story; count(); showWriting(); notice(); }));
-$('story').addEventListener('input',()=>{ count(); notice(); });
-$('make-script').addEventListener('click',()=>{
- const story=$('story').value.trim(); if(!story){ notice('오늘의 이야기를 적거나, 아래 예시 하나를 골라주세요.'); $('story').focus(); return; }
- selected=Object.keys(examples).find(key=>examples[key].story===story);
-
- $('story-summary').textContent=story; showStep(1);
+function syncLevels(){
+ document.querySelectorAll('button[data-level]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.level)===chosenLevel)));
+}
+function setStoryBusy(busy){
+ $('make-script').disabled=busy;$('make-script').setAttribute('aria-busy',String(busy));
+ $('make-script').textContent=busy?'내 이야기로 대본 만드는 중…':'내 이야기로 영어 만들기';
+ $('story').readOnly=busy;$('voice-tab').disabled=busy;$('write-tab').disabled=busy;
+ document.querySelectorAll('button[data-level],button[data-example]').forEach(button=>button.disabled=busy);
+ $('generation-progress').hidden=!busy;
+}
+function cancelStoryGeneration(){
+ if(!storyRequest)return;
+ storyGenerationEpoch++;storyRequest.abort();storyRequest=null;setStoryBusy(false);
+}
+function applyStoryLevel(){
+ if(activeExampleKey){
+  const original=examples[activeExampleKey];
+  selected=`sample-${activeExampleKey}-${chosenLevel}`;
+  examples[selected]={...original,lines:EXAMPLE_UPGRADES[activeExampleKey]?.[chosenLevel]||original.lines,level:chosenLevel,isExample:true,ending:conversationEndings[activeExampleKey]};
+ }else if(personalStory){
+  const level=personalStory.result.levels.find(item=>item.level===chosenLevel);
+  selected=`personal-${chosenLevel}`;
+  examples[selected]={story:personalStory.source,title:personalStory.result.title,level:chosenLevel,isExample:false,
+   lines:level.podcast.map(line=>[line.en,line.ko]),answerLines:level.dialogue.map(item=>[item.answer.en,item.answer.ko]),
+   turns:level.dialogue.map((item,index)=>[item.question.en,item.question.ko,index]),ending:[level.closing.en,level.closing.ko]};
+ }
+ if(selected){$('story-summary').textContent=examples[selected].story;$('story-kind').textContent=activeExampleKey?'예시 이야기 · '+chosenLevel+'단계':'내 이야기 · '+chosenLevel+'단계';}
+ syncLevels();
+}
+document.querySelectorAll('button[data-level]').forEach(button=>button.onclick=()=>{chosenLevel=Number(button.dataset.level);syncLevels();if(!$('script-panel').hidden)applyStoryLevel();});
+document.querySelectorAll('[data-example]').forEach(button=>button.addEventListener('click',()=>{cancelStoryGeneration();activeExampleKey=button.dataset.example;selected=activeExampleKey;$('story').value=examples[activeExampleKey].story;count();showWriting();notice();}));
+$('story').addEventListener('input',()=>{activeExampleKey=null;count();notice();});
+const storyErrors={ai_auth_error:'AI 연결을 확인해야 해요. 적은 이야기는 그대로 남아 있어요. 잠시 후 다시 시도해 주세요.',ai_model_unavailable:'지금 AI 연결을 확인하고 있어요. 예시 이야기로 먼저 연습할 수 있어요.',ai_quota:'지금은 AI 사용 한도로 대본을 만들 수 없어요. 예시 이야기는 연습할 수 있어요.',ai_not_configured:'AI 연결이 아직 준비되지 않았어요. 적은 이야기는 그대로 남아 있어요. 예시 이야기는 바로 연습할 수 있어요.',too_many_requests:'짧은 시간에 여러 번 만들었어요. 잠시 쉬었다 다시 시도해 주세요.',ai_busy:'지금 AI가 바빠요. 잠시 후 다시 눌러주세요.',ai_timeout:'AI가 대본을 만드는 데 시간이 걸리고 있어요. 이야기는 남아 있으니 다시 시도해 주세요.',invalid_story:'오늘 있었던 일을 조금 더 들려주세요. 2,000자 안에서 적을 수 있어요.',generation_refused:'이 이야기로는 대본을 만들지 못했어요. 내용을 조금 바꾸어 다시 시도해 주세요.'};
+$('make-script').addEventListener('click',async()=>{
+ const source=$('story').value.trim();
+ if(!source){notice('오늘의 이야기를 적거나, 아래 예시 하나를 골라주세요.');$('story').focus();return;}
+ if(storyRequest)return;
+ continueAfterVoice=false;recognition?.stop();
+ activeExampleKey=['coffee','work','walk'].find(key=>examples[key].story===source)||null;
+ if(activeExampleKey || personalStory?.source===source){applyStoryLevel();showStep(1);return;}
+ const id=++storyGenerationEpoch;const controller=new AbortController();storyRequest=controller;setStoryBusy(true);notice();
+ try{
+  const response=await fetch('/api/story',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({story:source}),signal:controller.signal});
+  const body=await response.json().catch(()=>null);
+  if(id!==storyGenerationEpoch)return;
+  if(!response.ok)throw new Error(storyErrors[body?.error]||'대본을 만들지 못했어요. 이야기는 그대로 남아 있어요. 잠시 후 다시 시도해 주세요.');
+  const result=normalizeStoryResult(body);
+  personalStory={source,result};activeExampleKey=null;applyStoryLevel();
+  storyRequest=null;setStoryBusy(false);showStep(1);
+ }catch(error){if(id===storyGenerationEpoch && error.name!=='AbortError')notice(error.message==='invalid_story_result'?'AI 대본을 확인하지 못했어요. 다시 시도해 주세요.':error.message==='Failed to fetch'?'인터넷 연결을 확인하고 다시 시도해 주세요.':error.message);}
+ finally{if(id===storyGenerationEpoch){storyRequest=null;setStoryBusy(false);}}
 });
+$('cancel-generation').onclick=()=>{cancelStoryGeneration();notice('작성을 취소했어요. 이야기는 그대로 남아 있어요.');};
 $('edit-story').onclick=()=>showStep(0);
-document.querySelectorAll('button[data-mode]').forEach(button=>button.onclick=()=>{ if(!selected){notice('내 이야기를 입력했어요. 아직 자유 입력의 영어 변환은 연결 전이라, ‘이야기 바꾸기’에서 예시를 선택하면 연습을 체험할 수 있어요.');return;} mode=button.dataset.mode; turn=0; hidden=false;conversationComplete=false; resetAudio(); showStep(2); renderPractice(); if(mode==='friend')chooseOrbForm(); });
+document.querySelectorAll('button[data-mode]').forEach(button=>button.onclick=()=>{ if(!selected || !examples[selected]){notice('먼저 내 이야기로 영어 대본을 만들어주세요.');return;} mode=button.dataset.mode; turn=0; hidden=false;conversationComplete=false; resetAudio(); showStep(2); renderPractice(); if(mode==='friend')chooseOrbForm(); });
 $('back-script').onclick=()=>showStep(1);
 $('toggle-script').onclick=()=>{if(mode==='podcast'){cancelRecordingSession();resetAudio();}hidden=!hidden;renderPractice();};
 $('hear-question').onclick=()=>{cancelConversationResponse();speak($('question-en').textContent);};
-$('listen-practice').onclick=()=>speak(mode==='friend'?examples[selected].lines[examples[selected].turns[turn][2]][0]:examples[selected].lines.map(l=>l[0]).join(' '));
+$('listen-practice').onclick=()=>speak(mode==='friend'?(examples[selected].answerLines || examples[selected].lines)[examples[selected].turns[turn][2]][0]:examples[selected].lines.map(l=>l[0]).join(' '));
 $('next-question').onclick=skipConversationTurn;
 $('restart').onclick=()=>{ cancelRecordingSession(); stopSpeech(); resetAudio(); turn=0;conversationComplete=false;hidden=false;renderPractice(); notice('괜찮아요. 처음부터 천천히 다시 해봐요.'); };
 async function startRecording({session=false}={}) {
@@ -661,11 +743,12 @@ async function startRecording({session=false}={}) {
   const takeStarted=Date.now();
   const takeStory=!session?examples[selected]?.story:null;
   const takeLines=!session?examples[selected]?.lines.map(line=>[...line]):null;
+  const takeTitle=!session?examples[selected]?.title:null;const takeLevel=!session?examples[selected]?.level:null;
   localRecorder.onstop=()=>{
    if(!session)localStream.getTracks().forEach(t=>t.stop());
    if(!session && localChunks.length){
     const takeBlob=new Blob(localChunks,{type:localRecorder.mimeType});
-    savePodcastTake(takeBlob,takeStarted,Math.max(0,(Date.now()-takeStarted)/1000),takeStory,takeLines);
+    savePodcastTake(takeBlob,takeStarted,Math.max(0,(Date.now()-takeStarted)/1000),takeStory,takeLines,takeTitle,takeLevel);
    }
    if(epoch!==recordingEpoch)return;
    if(!session)stopReadingFollow();
@@ -786,7 +869,7 @@ $('cafe-music').onended=async()=>{
 };
 $('cafe-music').onerror=()=>{musicVersion++;musicRequested=false;soundEnabled=false;updateAmbience();notice('음원을 불러오지 못했어요. 화면을 다시 열어주세요.');};
 document.addEventListener('visibilitychange',()=>{if(document.hidden && readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();}if(document.hidden && conversationRunning)endConversation('화면을 떠나 대화를 멈췄어요. 시작을 눌러 이어가세요.');});
-window.addEventListener('beforeunload',()=>{$('cafe-music').pause();cancelRecordingSession();stopSpeech();recognition?.stop();if(audioURL)URL.revokeObjectURL(audioURL);audioContext?.close();});
+window.addEventListener('beforeunload',()=>{cancelStoryGeneration();$('cafe-music').pause();cancelRecordingSession();stopSpeech();recognition?.stop();if(audioURL)URL.revokeObjectURL(audioURL);audioContext?.close();});
 
 $('studio-record').onclick=()=>{if(recorder?.state==='recording')stopRecording();else startRecording();};
 const diaryStore=new PodcastDiaryStore();
@@ -796,8 +879,8 @@ function pauseDiary(){
  $('diary-list').querySelectorAll('audio').forEach(audio=>audio.pause());
  diaryURLs.forEach(url=>URL.revokeObjectURL(url));diaryURLs=[];
 }
-async function savePodcastTake(blob,createdAt,seconds,story,lines){
- const entry={id:crypto.randomUUID(),createdAt,seconds,story,lines,blob,title:`${new Date(createdAt).toLocaleDateString('ko-KR')} 나의 이야기`};
+async function savePodcastTake(blob,createdAt,seconds,story,lines,title,level){
+ const entry={id:crypto.randomUUID(),createdAt,seconds,story,lines,blob,level:level||1,title:title||`${new Date(createdAt).toLocaleDateString('ko-KR')} 나의 이야기`};
  try{await diaryStore.put(entry);notice('팟게스트 일기장에 저장했어요. 일기장에서 제목을 바꾸고 다시 들을 수 있어요.');}
  catch{unsavedTakes.set(entry.id,entry);notice('브라우저에 저장하지 못했어요. 일기장에서 녹음을 내려받아 주세요. 이 창을 닫으면 미저장 녹음은 사라져요.');}
  if(document.body.dataset.screen==='diary')renderDiary();
@@ -822,7 +905,7 @@ async function renderDiary(){
  $('diary-list').replaceChildren();
  for(const entry of entries){
   const card=document.createElement('article');card.className='diary-entry';
-  const date=document.createElement('small');date.textContent=new Date(entry.createdAt).toLocaleString('ko-KR')+` · ${Math.floor(entry.seconds/60)}분 ${Math.round(entry.seconds%60)}초`;
+  const date=document.createElement('small');date.textContent=new Date(entry.createdAt).toLocaleString('ko-KR')+` · ${Math.floor(entry.seconds/60)}분 ${Math.round(entry.seconds%60)}초`+(entry.level?' · '+entry.level+'단계':'');
   const label=document.createElement('label');label.textContent='이야기 제목';label.htmlFor=`title-${entry.id}`;
   const input=document.createElement('input');input.id=label.htmlFor;input.value=entry.title;input.maxLength=80;
   const save=document.createElement('button');save.className='text-button';save.textContent='제목 저장';
