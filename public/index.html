@@ -323,6 +323,8 @@ let cafeTrackIndex=0,musicSwitching=false;
 let speechActive = false, speechGeneration = 0, activeUtterance = null;
 let speechStartTimer = null, speechEndTimer = null, speechQueueTimer = null;
 const voicePlaybackFailures = new Set();
+try{const failed=JSON.parse(localStorage.getItem('podguest-unavailable-voices')||'[]');if(Array.isArray(failed))for(const id of failed)if(typeof id==='string')voicePlaybackFailures.add(id);}catch{}
+function rememberVoiceFailure(id){voicePlaybackFailures.add(id);try{localStorage.setItem('podguest-unavailable-voices',JSON.stringify([...voicePlaybackFailures]));}catch{}}
 let responseTimer=null, responseVersion=0, conversationPending=false;
 let meterFrame=null, meterSource=null, meterAnalyser=null;
 let conversationPaused=false,conversationStage='question',pausedConversationStage='question';
@@ -508,11 +510,16 @@ function stopSpeech() {
  listening=false;speechActive=false;updateAmbience();
 }
 function speechProfiles(){
- if(cloudVoicesReady)return VOICE_CATALOG.filter(voice=>voice.gender===friendPerson);
+ if(cloudVoicesReady)return VOICE_CATALOG.filter(voice=>voice.gender===friendPerson && !voicePlaybackFailures.has(voice.id));
  if(!('speechSynthesis' in window))return [];
  const voices=speechSynthesis.getVoices().filter(voice=>/^en([_-]|$)/i.test(voice.lang));
- const unique=[...new Map(voices.map(voice=>[voice.voiceURI||voice.name+'-'+voice.lang,voice])).values()].slice(0,10);
- return unique.length?unique.map(voice=>({id:'device:'+encodeURIComponent(voice.voiceURI||voice.name+'-'+voice.lang),name:voice.name+' · '+voice.lang,localVoice:voice})):[{id:'device:default',name:'기기 기본 영어',defaultVoice:true}];
+ const profiles=[...new Map(voices.map(voice=>[voice.voiceURI||voice.name+'-'+voice.lang,voice])).values()]
+  // These four online voices were reported as unplayable on the user's device.
+  .filter(voice=>!/^Microsoft (Annette|Carly|Darren|Duncan) Online\b/i.test(voice.name))
+  .map(voice=>({id:'device:'+encodeURIComponent(voice.voiceURI||voice.name+'-'+voice.lang),name:voice.name+' · '+voice.lang,localVoice:voice}))
+  .filter(profile=>!voicePlaybackFailures.has(profile.id)).slice(0,10);
+ if(voices.length)return profiles;
+ return voicePlaybackFailures.has('device:default')?[]:[{id:'device:default',name:'기기 기본 영어',defaultVoice:true}];
 }
 function selectedSpeechProfile(){return speechProfiles().find(voice=>voice.id===$('friend-voice').value);}
 function matchingLocalVoice(profile){
@@ -532,14 +539,15 @@ async function speak(text) {
  const finish=()=>{if(generation!==speechGeneration)return;clearTimeout(speechStartTimer);clearTimeout(speechEndTimer);activeUtterance=null;listening=false;speechActive=false;updateAmbience();finishSpeech(true);};
  const fail=()=>{
   if(generation!==speechGeneration)return;
-  voicePlaybackFailures.add(profile.id);stopSpeech();loadVoices();
-  notice(`${profile.name} 목소리를 이 기기에서 재생하지 못했어요. 다른 목소리를 선택하거나 잠시 후 다시 시도해 주세요.`);
+  rememberVoiceFailure(profile.id);stopSpeech();loadVoices();
+  notice('재생되지 않는 목소리를 목록에서 뺐어요. 다른 목소리를 선택해 주세요.');
  };
  const started=()=>{
   if(generation!==speechGeneration)return;
   clearTimeout(speechStartTimer);voicePlaybackFailures.delete(profile.id);loadVoices();
   speechActive=true;updateAmbience();notice();
-  speechEndTimer=setTimeout(fail,60000);
+  // A long reading reaching the playback limit does not mean its voice is unavailable.
+  speechEndTimer=setTimeout(()=>{if(generation!==speechGeneration)return;stopSpeech();notice('음성 재생을 잠시 마쳤어요. 다시 듣기를 누르면 재생돼요.');},60000);
  };
  listening=true;updateOrbState();
  if(cloudVoicesReady){
@@ -612,7 +620,7 @@ function updateRecordingUI() {
  $('toggle-script').disabled = false;
  ['listen-practice','hear-question'].forEach(id=>$(id).disabled=conversationRunning || readingPractice || active || recordPending);
  $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady && !matchingLocalVoice(selectedSpeechProfile()));
- $('friend-voice').disabled=conversationRunning;document.querySelectorAll('button[data-person]').forEach(button=>button.disabled=conversationRunning);
+ $('friend-voice').disabled=conversationRunning || !selectedSpeechProfile();document.querySelectorAll('button[data-person]').forEach(button=>button.disabled=conversationRunning);
  $('hidden-title').textContent = recordPending ? '마이크 사용을 허용해 주세요.' : active ? '지금, 당신의 이야기를 담고 있어요.' : audioURL ? '내 목소리로 이야기를 완성했어요.' : '당신의 이야기를 들려주세요.';
  updateOrbState();
  $('hidden-help').textContent = recordPending ? '브라우저의 마이크 허용 창을 확인해 주세요. 허용하면 바로 녹음돼요.' : active ? '다 말했으면 마이크를 다시 눌러주세요.' : audioURL ? '아래에서 녹음한 이야기를 들어보세요.' : '막히면 언제든 대본을 다시 볼 수 있어요.';
@@ -804,15 +812,16 @@ function loadVoices() {
  $('friend-voice').replaceChildren();
  profiles.forEach(profile=>{
   const available=cloudVoicesReady || Boolean(matchingLocalVoice(profile));
-  const option=new Option(profile.name+(voicePlaybackFailures.has(profile.id)?' · 재생 확인 필요':available?'':' · 연결 필요'),profile.id);
+  if(!available)return;
+  const option=new Option(profile.name,profile.id);
   option.dataset.available=String(available);$('friend-voice').append(option);
  });
  const options=[...$('friend-voice').options];
  const chosen=options.find(o=>o.value===current && o.dataset.available==='true')||options.find(o=>o.dataset.available==='true')||options[0];
  $('friend-voice').value=chosen?.value||'';
- $('friend-voice').disabled=conversationRunning;
+ $('friend-voice').disabled=conversationRunning || !chosen;
  $('preview-voice').disabled=conversationRunning || chosen?.dataset.available!=='true';
- $('voice-help').textContent=cloudVoicesReady?`목소리 ${profiles.length}개 중 골라주세요.`:profiles.length?'이 기기의 영어 음성으로 읽어드려요. 목소리 들어보기로 먼저 확인해 주세요. 성별과 종류는 기기마다 달라요.':'이 브라우저는 음성 재생을 지원하지 않아요. Safari 또는 Chrome에서 열어주세요.';
+ $('voice-help').textContent=!chosen?'지금 재생할 수 있는 영어 목소리가 없어요. 기기에 영어 음성을 설치하거나 다른 브라우저에서 열어주세요.':cloudVoicesReady?`목소리 ${profiles.length}개 중 골라주세요.`:profiles.length?'이 기기의 영어 음성으로 읽어드려요. 목소리 들어보기로 먼저 확인해 주세요. 성별과 종류는 기기마다 달라요.':'이 브라우저는 음성 재생을 지원하지 않아요. Safari 또는 Chrome에서 열어주세요.';
 }
 loadVoices();if('speechSynthesis' in window)speechSynthesis.addEventListener('voiceschanged',loadVoices);
 if(location.protocol==='http:' || location.protocol==='https:') {
