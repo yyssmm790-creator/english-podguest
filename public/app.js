@@ -468,7 +468,7 @@ async function startRecording({session=false}={}) {
    const blob=new Blob(localChunks,{type:localRecorder.mimeType});
    const elapsed=Math.floor((Date.now()-recordingStarted)/1000);
    resetAudio(); $('recording-clock').textContent=`${String(Math.floor(elapsed/60)).padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}`; audioURL=URL.createObjectURL(blob);
-   const audio=document.createElement('audio');audio.controls=true;audio.src=audioURL;
+   const audio=document.createElement('audio');audio.controls=true;audio.setAttribute('controlslist','nodownload noplaybackrate');audio.src=audioURL;
    const play=document.createElement('button');play.className='play-recording';play.textContent='▷ 내 목소리 들어보기';
    play.onclick=async()=>{try{if(conversationRunning)endConversation(null);cancelConversationResponse();stopSpeech();await audio.play();}catch{notice('재생 버튼을 다시 눌러주세요.');}};
    audio.onplay=()=>{if(conversationRunning)endConversation(null);cancelConversationResponse();stopSpeech();playbackActive=true;play.textContent='내 이야기를 듣고 있어요';updateAmbience();};
@@ -609,9 +609,10 @@ async function renderDiary(){
  pauseDiary();
  const byId=new Map(entries.map(entry=>[entry.id,entry]));unsavedTakes.forEach((entry,id)=>byId.set(id,entry));
  entries=[...byId.values()].sort((a,b)=>b.createdAt-a.createdAt);
+ const recordingCount=entries.filter(entry=>entry.blob instanceof Blob).length;
  const days=new Set(entries.map(entry=>new Date(entry.createdAt).toLocaleDateString('ko-KR'))).size;
  const seconds=Math.round(entries.reduce((sum,entry)=>sum+entry.seconds,0));
- $('diary-summary').textContent=entries.length?`${entries.length}개의 이야기 · ${days}일의 기록 · ${Math.floor(seconds/60)}분 ${seconds%60}초 말했어요. 오래된 녹음과 오늘의 목소리를 비교해 보세요.`:'아직 첫 이야기를 기다리고 있어요. 스튜디오 마이크로 오늘의 목소리를 남겨보세요.';
+ $('diary-summary').textContent=entries.length?`${entries.length}개의 이야기 · 녹음 ${recordingCount}개 · ${days}일의 기록 · ${Math.floor(seconds/60)}분 ${seconds%60}초 연습했어요.`:'아직 첫 이야기를 기다리고 있어요. 스튜디오 마이크로 오늘의 목소리를 남겨보세요.';
  if(failed)$('diary-summary').textContent+=' 브라우저 저장소를 열지 못했어요. 저장된 기록을 불러오지 못할 수 있어요.';
  $('diary-list').replaceChildren();
  for(const entry of entries){
@@ -625,18 +626,43 @@ async function renderDiary(){
    const title=input.value.trim();if(!title){state.textContent='제목을 입력해 주세요.';return;}
    save.disabled=true;const renamed={...entry,title};
    try{await diaryStore.put(renamed);Object.assign(entry,renamed);unsavedTakes.delete(entry.id);state.textContent='제목을 저장했어요.';}
-   catch{if(unsavedTakes.has(entry.id)){Object.assign(entry,renamed);unsavedTakes.set(entry.id,entry);}state.textContent='저장하지 못했어요. 녹음을 내려받아 주세요.';}
+   catch{if(unsavedTakes.has(entry.id)){Object.assign(entry,renamed);unsavedTakes.set(entry.id,entry);}state.textContent=entry.blob instanceof Blob?'저장하지 못했어요. 녹음을 내려받아 주세요.':'제목을 저장하지 못했어요. 다시 시도해 주세요.';}
    finally{save.disabled=false;}
   };
-  const url=URL.createObjectURL(entry.blob);diaryURLs.push(url);
-  const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.src=url;audio.setAttribute('aria-label',`${entry.title} 녹음 듣기`);
-  audio.onplay=()=>{$('diary-list').querySelectorAll('audio').forEach(other=>{if(other!==audio)other.pause();});stopSpeech();playbackActive=true;updateAmbience();};
-  const ended=()=>{playbackActive=!![...$('diary-list').querySelectorAll('audio')].find(other=>!other.paused);updateAmbience();};audio.onpause=ended;audio.onended=ended;
-  const download=document.createElement('a');download.href=url;download.textContent='녹음 내려받기 ↓';download.download=`${entry.title}.${entry.blob.type.includes('mp4')?'m4a':'webm'}`;
-  download.onclick=()=>{download.download=`${input.value.trim()||entry.title}.${entry.blob.type.includes('mp4')?'m4a':'webm'}`;};
+  card.append(date,label,input,save,state);
+  if(entry.blob instanceof Blob){
+   const url=URL.createObjectURL(entry.blob);diaryURLs.push(url);
+   const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.src=url;
+   audio.setAttribute('controlslist','nodownload noplaybackrate');
+   audio.setAttribute('aria-label',`${entry.title} 녹음 듣기`);
+   audio.onplay=()=>{$('diary-list').querySelectorAll('audio').forEach(other=>{if(other!==audio)other.pause();});stopSpeech();playbackActive=true;updateAmbience();};
+   const ended=()=>{playbackActive=!![...$('diary-list').querySelectorAll('audio')].find(other=>!other.paused);updateAmbience();};audio.onpause=ended;audio.onended=ended;
+   const download=document.createElement('a');download.href=url;download.textContent='녹음 내려받기 ↓';download.download=`${entry.title}.${entry.blob.type.includes('mp4')?'m4a':'webm'}`;
+   download.onclick=()=>{download.download=`${input.value.trim()||entry.title}.${entry.blob.type.includes('mp4')?'m4a':'webm'}`;};
+   const remove=document.createElement('button');remove.type='button';remove.className='text-button delete-recording';remove.textContent='삭제';remove.setAttribute('aria-label',`${entry.title} 녹음파일만 삭제`);
+   remove.onclick=async()=>{
+    remove.disabled=true;save.disabled=true;
+    try{
+     if(unsavedTakes.has(entry.id)){
+      const preserved={...entry,blob:null,audioDeletedAt:Date.now()};
+      // An unsaved recording can still be removed when browser storage is unavailable.
+      try{await diaryStore.put(preserved);unsavedTakes.delete(entry.id);}catch{unsavedTakes.set(entry.id,preserved);}
+     }else await diaryStore.removeAudio(entry.id);
+     audio.pause();audio.removeAttribute('src');audio.load();URL.revokeObjectURL(url);resetAudio();
+     notice('녹음파일을 삭제했어요. 이야기와 대본은 그대로 남아 있어요.');
+     await renderDiary();
+    }catch{state.textContent='녹음파일을 삭제하지 못했어요. 다시 눌러주세요.';}
+    finally{remove.disabled=false;save.disabled=false;}
+   };
+   const actions=document.createElement('div');actions.className='recording-actions';actions.append(download,remove);
+   card.append(audio,actions);
+  }else{
+   const removed=document.createElement('p');removed.className='demo-note';removed.textContent='녹음파일을 삭제했어요. 이야기와 대본은 다시 볼 수 있어요.';card.append(removed);
+   state.textContent=unsavedTakes.has(entry.id)?'대본 미저장 · 이 창을 닫으면 사라져요.':'대본이 저장되어 있어요.';
+  }
   const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='그날의 대본 보기';details.append(summary);
   const story=document.createElement('p');story.textContent=entry.story||'';details.append(story);const script=document.createElement('div');fillLines(script,entry.lines||[]);details.append(script);
-  card.append(date,label,input,save,state,audio,download,details);$('diary-list').append(card);
+  card.append(details);$('diary-list').append(card);
  }
 }
 

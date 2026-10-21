@@ -25,3 +25,5 @@ body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data
 @media(max-width:760px){.input-card textarea,.diary-entry input,#friend-voice{font-size:16px}}
 
 .saved-stories{margin:24px 0;color:#667953;font-size:13px}.saved-stories summary{cursor:pointer;padding:14px 0}.saved-stories small{display:block;line-height:1.7}.saved-story-row{display:flex;align-items:center;gap:12px;border-top:1px solid #dce3d0;padding:8px 0}.saved-story-open{flex:1;min-width:0;text-align:left;border:0;background:transparent;padding:12px 0;color:#3f4b39;cursor:pointer}.saved-story-open strong,.saved-story-open span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.saved-story-open span{margin:6px 0;font-size:13px;font-weight:400}.saved-story-row>button{min-height:44px}.saved-story-row>.text-button{min-width:44px}
+
+.recording-actions{display:flex;flex-direction:column;align-items:flex-start;gap:4px}.recording-actions a,.recording-actions button{display:inline-flex;align-items:center;min-height:44px}.delete-recording{color:#a65240}

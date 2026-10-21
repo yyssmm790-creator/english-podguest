@@ -11,5 +11,10 @@ export class PodcastDiaryStore {
  }
  async run(mode,action){const db=await this.open();return new Promise((resolve,reject)=>{const tx=db.transaction('entries',mode);const req=action(tx.objectStore('entries'));tx.oncomplete=()=>resolve(req.result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('저장 중단'));});}
  put(entry){return this.run('readwrite',store=>store.put(entry));}
+ removeAudio(id){return this.run('readwrite',store=>{
+  const request=store.get(id);
+  request.onsuccess=()=>{if(request.result)store.put({...request.result,blob:null,audioDeletedAt:Date.now()});};
+  return request;
+ });}
  list(){return this.run('readonly',store=>store.getAll());}
 }
