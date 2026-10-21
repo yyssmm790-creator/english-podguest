@@ -1,0 +1,16 @@
+{
+ "id": "/",
+ "name": "나는 영어 팟게스트",
+ "short_name": "팟게스트",
+ "description": "내 하루가, 나의 영어로. 나만의 영어 팟게스트 스튜디오.",
+ "lang": "ko",
+ "start_url": "/",
+ "scope": "/",
+ "display": "standalone",
+ "background_color": "#f7f5ef",
+ "theme_color": "#61784c",
+ "icons": [
+  {"src":"/icons/podguest-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+  {"src":"/icons/podguest-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+ ]
+}
