@@ -27,3 +27,10 @@ Prepare and resume the Web Audio context from the start-button action before wai
 - Storage retention under Safari private mode/low storage. Diary is browser-local, not synchronized.
 
 Do not label these results as complete iOS/Android certification. Free-story AI generation remains unconnected in this demonstration.
+
+## 2026-10-22 compact podcast update
+
+- Removed the guest hero, bottom start button and long podcast helper text. A 44px microphone button at the upper right controls recording with either visible or hidden script. It changes color and responds to actual input amplitude. Conversation controls retain their existing behavior.
+- Script spacing and font size reduced while keeping Korean translations readable. 320–768px layouts checked; a four-line sample fits at 390×844. Long scripts remain scrollable. Header brand returns to the initial studio and closes/saves an active take.
+- Script hiding no longer stops/splits recording. Finishing from the top mic or navigating home stores the script/source/audio together. Recording-file-only deletion remains available.
+- Optional browser regression: `tests/compact-podcast.browser.mjs` (same Playwright/BASE_URL environment options as other browser scripts). Uses a controlled audio stream; no physical iPhone/Android audio verification.

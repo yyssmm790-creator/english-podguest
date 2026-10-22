@@ -194,7 +194,7 @@ function showWriting(focus=false) {
  $('writing-area').hidden=false;document.body.dataset.writing='true';
  if(focus)$('story').focus();
 }
-$('home').onclick=event=>{event.preventDefault();showStep(0);};
+$('home').onclick=event=>{event.preventDefault();showStep(0);$('writing-area').hidden=true;delete document.body.dataset.writing;};
 function stopSpeech() {
  finishSpeech(false);speechGeneration++; clearTimeout(speechStartTimer); clearTimeout(speechEndTimer); clearTimeout(speechQueueTimer); activeUtterance=null; speechRequest?.abort(); speechRequest=null;
  if(speechAudio){speechAudio.pause();speechAudio=null;}
@@ -282,19 +282,25 @@ function stopRecording() {
 }
 function updateRecordingUI() {
  const active = recorder?.state === 'recording';
+ const micActive=active || readingPractice;
  $('live-voice').hidden=!(readingPractice || active || recordPending || (mode==='friend' && conversationRunning));
  if(!active && !readingPractice)$('live-voice-label').textContent=recordPending?'마이크 연결 중…':speechActive?'친구가 이야기하고 있어요':'질문을 들은 뒤 이야기해 주세요';
  $('studio-record').hidden=mode!=='podcast';
  $('studio-record').disabled=recordPending || recordingFinalizing;
- $('studio-record').setAttribute('aria-pressed',String(active));
- $('studio-record').setAttribute('aria-label',active?'녹음을 마치고 일기장에 저장':'스튜디오 마이크 녹음 시작');
+ $('studio-record').setAttribute('aria-pressed',String(micActive));
+ $('studio-record').setAttribute('aria-label',active?'녹음을 마치고 일기장에 저장':'녹음 시작');
  $('studio-record-label').textContent=recordingFinalizing?'녹음 마치는 중…':recordPending?'마이크 연결 중…':active?'녹음 중 · 눌러서 마치기':'마이크를 눌러 시작';
- $('record').hidden=mode==='podcast' && hidden;
+ $('record').hidden=mode==='podcast';
+ $('practice-label').hidden=mode==='podcast';
+ $('podcast-save-note').hidden=mode!=='podcast';
+ $('practice-disclaimer').hidden=mode==='podcast';
+ $('podcast-clock').hidden=mode!=='podcast' || !active;
+ $('podcast-mic-status').textContent=mode!=='podcast'?'':recordPending?'마이크 연결 중':recordingFinalizing?'녹음 저장 중':readingPractice?'듣고 있어요':active?'녹음 중':'';
  $('recording-feedback').hidden=mode!=='podcast' || !hidden || (!active && !recordPending);
  $('visible-clock').hidden=hidden;
  if(recordPending)$('mic-status').textContent='마이크 연결 중 · 권한을 허용해 주세요';
  else if(active && mode==='podcast')$('mic-status').textContent='● 마이크 연결됨 · 녹음 중';
- $('recording-orb').classList.toggle('is-recording', active);
+ $('recording-orb').classList.toggle('is-recording', micActive);
  $('recording-orb').classList.toggle('is-pending', recordPending);
  const running=mode==='friend'?conversationRunning:readingPractice || active;
  const label=mode==='podcast' && !hidden?(recordPending?'마이크 연결 중…':readingPractice?'말하기 마치기':'시작하기'):mode==='friend'?(conversationRunning?'일시정지':conversationPaused?'이어하기':'시작'):recordPending?'마이크 연결 중…':active?'녹음 마치기':'시작하기';
@@ -334,11 +340,10 @@ function fillLines(container, lines) {
  container.replaceChildren();
  for (const [en,ko] of lines) { const div = document.createElement('div'); div.className='script-line'; const p=document.createElement('p'); p.textContent=en; const small=document.createElement('small'); small.textContent=ko; div.append(p,small); container.append(div); }
 }
-function resetAudio() { const old=$('recording-result').querySelector('audio'); if(old)old.pause(); playbackActive=false; if (audioURL) URL.revokeObjectURL(audioURL); audioURL=null; $('recording-result').replaceChildren(); $('recording-clock').textContent='00:00';$('visible-clock').textContent='00:00'; updateAmbience(); }
+function resetAudio() { const old=$('recording-result').querySelector('audio'); if(old)old.pause(); playbackActive=false; if (audioURL) URL.revokeObjectURL(audioURL); audioURL=null; $('recording-result').replaceChildren(); $('recording-clock').textContent='00:00';$('visible-clock').textContent='00:00';$('podcast-clock').textContent='00:00'; updateAmbience(); }
 function renderPractice() {
  const data=examples[selected];
  document.body.dataset.mode=mode;
- $('podcast-hero').hidden=mode!=='podcast';
  $('friend-question').hidden = mode !== 'friend';
  $('friend-person').hidden = mode !== 'friend';
  $('next-question').hidden = mode !== 'friend';
@@ -349,14 +354,14 @@ function renderPractice() {
  const span=document.createElement('span'); span.textContent=mode==='friend'?'이야기해 볼까요?':'당신이에요.'; $('practice-title').append(span);
  $('practice-intro').textContent=mode==='friend'?'내 이야기를 아는 친구와, 한 문장씩 천천히.':'천천히, 내 속도로. 몇 번을 다시 해도 괜찮아요.';
  $('paper-label').textContent=mode==='friend'?'이렇게 답해볼까요?':'내 이야기';
- $('practice-disclaimer').textContent=mode==='friend'?(data.isExample?'예시 이야기로 대화 연습을 해요.':'내 이야기로 만든 질문과 예시 답변이에요. 말소리가 끝나면 다음 질문으로 이어져요.'):hidden?'마이크로 녹음한 이야기만 일기장에 저장돼요.':'내 목소리에 파형만 반응해요. 녹음 파일은 만들거나 저장하지 않아요.';
+ $('practice-disclaimer').textContent=mode==='friend'?(data.isExample?'예시 이야기로 대화 연습을 해요.':'내 이야기로 만든 질문과 예시 답변이에요. 말소리가 끝나면 다음 질문으로 이어져요.'):'대본과 녹음은 일기장에 자동 저장돼요.';
  const question=conversationComplete?(examples[selected].ending || conversationEndings[selected]):data.turns[turn];
  $('question-en').textContent=question[0]; $('question-ko').textContent=question[1];
  fillLines($('practice-script'),mode==='friend'?[(data.answerLines || data.lines)[data.turns[turn][2]]]:data.lines);
  $('next-question').textContent=conversationComplete || turn===data.turns.length-1?'다시 대화하기 ↺':'다음 질문 →';
  $('practice-script').hidden=hidden; $('hidden-script').hidden=!hidden;
  $('toggle-script').textContent=hidden?'대본 다시 보기':mode==='friend'?'대본 가리기':'가리며 말하기'; $('toggle-script').setAttribute('aria-pressed',String(hidden));
- $('practice-status').textContent=mode==='podcast'?(hidden?'마이크를 눌러 녹음하고, 다시 눌러 마치면 일기장에 저장돼요.':'시작하기를 누르고 편하게 읽어주세요. 내 목소리에 파형이 움직여요.'):conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
+ $('practice-status').textContent=mode==='podcast'?'마이크를 눌러 녹음해 주세요.':conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
  updateRecordingUI();
 }
 function syncLevels(){
@@ -416,13 +421,13 @@ $('cancel-generation').onclick=()=>{cancelStoryGeneration();notice('작성을 �
 $('edit-story').onclick=()=>showStep(0);
 document.querySelectorAll('button[data-mode]').forEach(button=>button.onclick=()=>{ if(!selected || !examples[selected]){notice('먼저 내 이야기로 영어 대본을 만들어주세요.');return;} mode=button.dataset.mode; turn=0; hidden=false;conversationComplete=false; resetAudio(); showStep(2); renderPractice(); if(mode==='friend')chooseOrbForm(); });
 $('back-script').onclick=()=>showStep(1);
-$('toggle-script').onclick=()=>{if(mode==='podcast'){cancelRecordingSession();resetAudio();}hidden=!hidden;renderPractice();};
+$('toggle-script').onclick=()=>{hidden=!hidden;renderPractice();};
 $('hear-question').onclick=()=>{cancelConversationResponse();speak($('question-en').textContent);};
 $('listen-practice').onclick=()=>speak(mode==='friend'?(examples[selected].answerLines || examples[selected].lines)[examples[selected].turns[turn][2]][0]:examples[selected].lines.map(l=>l[0]).join(' '));
 $('next-question').onclick=skipConversationTurn;
 $('restart').onclick=()=>{ cancelRecordingSession(); stopSpeech(); resetAudio(); turn=0;conversationComplete=false;hidden=false;renderPractice(); notice('괜찮아요. 처음부터 천천히 다시 해봐요.'); };
 async function startRecording({session=false}={}) {
- if(!session && (mode!=='podcast' || !hidden))return false;
+ if(!session && mode!=='podcast')return false;
  const sessionEpoch=conversationEpoch;
  if(recordPending || recordingFinalizing) return false;
  if(recorder?.state==='recording') return true;
@@ -485,7 +490,7 @@ async function startRecording({session=false}={}) {
   const meterReady=startMicMeter(localStream);
   if(session && !meterReady){endConversation('음성 감지를 시작하지 못했어요. 마이크를 확인해 주세요.');return false;}
   recordingStarted=Date.now();
-  recordTimer=setInterval(()=>{const sec=Math.floor((Date.now()-recordingStarted)/1000);$('recording-clock').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;$('visible-clock').textContent=$('recording-clock').textContent;},250);
+  recordTimer=setInterval(()=>{const sec=Math.floor((Date.now()-recordingStarted)/1000);$('recording-clock').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;$('visible-clock').textContent=$('recording-clock').textContent;$('podcast-clock').textContent=$('recording-clock').textContent;},250);
   timeout=setTimeout(()=>session?endConversation('대화를 잠시 마쳤어요. 시작을 눌러 이어가세요.'):stopRecording(),180000);
   $('practice-status').textContent=session?'듣고 있어요. 다 말하고 잠깐 기다리면 다음 질문으로 이어져요.':'녹음 중이에요. 편하게 이야기해 주세요. (최대 3분)';notice();updateAmbience();return true;
  }catch(error){
@@ -497,7 +502,7 @@ async function startRecording({session=false}={}) {
  }
  finally{if(epoch===recordingEpoch){recordPending=false;updateRecordingUI();if(recorder?.state!=='recording' && hidden){$('hidden-title').textContent='마이크 연결을 확인해 주세요.';$('hidden-help').textContent='마이크 권한을 확인하고 마이크를 다시 눌러주세요. 미리보기에서 권한을 제한할 수도 있어요.';}}}
 }
-$('record').onclick=()=>{if(mode==='friend'){if(conversationRunning)pauseConversation();else startConversation();}else if(!hidden){if(readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();$('practice-status').textContent='읽기 연습을 마쳤어요. 시작하기를 누르면 다시 연습할 수 있어요.';}else startReadingPractice();}else if(recorder?.state==='recording')stopRecording();else startRecording();};
+$('record').onclick=()=>{if(mode==='friend'){if(conversationRunning)pauseConversation();else startConversation();}else $('studio-record').click();};
 function loadVoices() {
  const current=$('friend-voice').value;
  const profiles=speechProfiles();
@@ -592,7 +597,7 @@ function pauseDiary(){
 }
 async function savePodcastTake(blob,createdAt,seconds,story,lines,title,level){
  const entry={id:crypto.randomUUID(),createdAt,seconds,story,lines,blob,level:level||1,title:title||`${new Date(createdAt).toLocaleDateString('ko-KR')} 나의 이야기`};
- try{await diaryStore.put(entry);notice('팟게스트 일기장에 저장했어요. 일기장에서 제목을 바꾸고 다시 들을 수 있어요.');}
+ try{await diaryStore.put(entry);notice('일기장에 저장했어요.');}
  catch{unsavedTakes.set(entry.id,entry);notice('브라우저에 저장하지 못했어요. 일기장에서 녹음을 내려받아 주세요. 이 창을 닫으면 미저장 녹음은 사라져요.');}
  if(document.body.dataset.screen==='diary')renderDiary();
 }

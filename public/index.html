@@ -132,6 +132,39 @@ body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data
 .saved-stories{margin:24px 0;color:#667953;font-size:13px}.saved-stories summary{cursor:pointer;padding:14px 0}.saved-stories small{display:block;line-height:1.7}.saved-story-row{display:flex;align-items:center;gap:12px;border-top:1px solid #dce3d0;padding:8px 0}.saved-story-open{flex:1;min-width:0;text-align:left;border:0;background:transparent;padding:12px 0;color:#3f4b39;cursor:pointer}.saved-story-open strong,.saved-story-open span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.saved-story-open span{margin:6px 0;font-size:13px;font-weight:400}.saved-story-row>button{min-height:44px}.saved-story-row>.text-button{min-width:44px}
 
 .recording-actions{display:flex;flex-direction:column;align-items:flex-start;gap:4px}.recording-actions a,.recording-actions button{display:inline-flex;align-items:center;min-height:44px}.delete-recording{color:#a65240}
+
+/* Compact podcast reading screen. Keep the microphone reachable while scrolling. */
+header{position:sticky;top:0;z-index:20;background:var(--cream)}
+.brand{min-height:44px;justify-content:center}
+body[data-screen=practice][data-mode=podcast] .practice-top{position:sticky;top:78px;z-index:10;background:#faf8f0;gap:8px;flex-wrap:nowrap;margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--line)}
+body[data-mode=podcast] .practice-top .diary-open{margin-left:auto!important}
+body[data-mode=podcast] .practice-paper{border-top:0;padding-top:4px}
+body[data-mode=podcast] .paper-heading{margin-bottom:10px}
+body[data-mode=podcast] #practice-script .script-line{padding:0;margin:0 0 14px}
+body[data-mode=podcast] #practice-script .script-line:last-child{margin-bottom:0}
+body[data-mode=podcast] #practice-script .script-line p{font-size:24px;line-height:1.35;margin:0 0 4px;letter-spacing:-.4px}
+body[data-mode=podcast] #practice-script .script-line small{font-size:12px;line-height:1.5;display:block}
+body[data-mode=podcast] .practice-controls{margin-top:14px;gap:18px}
+body[data-mode=podcast] #practice-status,body[data-mode=podcast] #live-voice,body[data-mode=podcast] #recording-feedback,body[data-mode=podcast] #hidden-help,body[data-mode=podcast] .mic-level,body[data-mode=podcast] #recording-clock{display:none}
+#podcast-save-note{text-align:center;font-size:11px;line-height:1.5;color:#879477;margin:12px 0 0}
+#podcast-clock{font-size:12px;font-variant-numeric:tabular-nums;color:#a1513e;white-space:nowrap}
+.practice-top .podcast-mic-control{position:relative;display:grid;place-items:center;width:44px;min-width:44px;height:44px;margin:0;padding:0;border:1px solid #d8e1ca;border-radius:50%;background:#edf1e3;touch-action:manipulation}
+.practice-top .podcast-mic-control .recording-orb{display:grid;place-items:center;width:24px;height:28px;margin:0;border:0;border-radius:0;box-shadow:none;background:none;color:inherit;transform:scale(calc(1 + var(--mic-level,0)*.15))}
+.practice-top .podcast-mic-control .recording-orb:before,.practice-top .podcast-mic-control .recording-orb:after{display:none}
+.practice-top .podcast-mic-control .icon{width:24px;height:28px;stroke-width:1.6}
+.practice-top .podcast-mic-control[aria-pressed=true]{background:#ae5b48;color:#fff8ec;border-color:#ae5b48;box-shadow:0 0 0 calc(var(--mic-level,0)*7px) #ae5b4826}
+.practice-top .podcast-mic-control .is-recording{animation:none}
+.practice-top .podcast-mic-control:disabled{opacity:.6}
+@media(max-width:760px){
+ body[data-screen=practice][data-mode=podcast] .practice-top{top:70px}
+ body[data-mode=podcast] .practice-shell{margin:10px auto;padding:10px 16px 14px}
+ body[data-mode=podcast] #practice-script .script-line{margin-bottom:12px}
+ body[data-mode=podcast] #practice-script .script-line p{font-size:21px;line-height:1.35}
+ body[data-mode=podcast] #practice-script .script-line small{font-size:12px;line-height:1.45}
+}
+
+body[data-screen=practice] main{overflow:clip}
+body[data-mode=podcast] #recording-result{display:none}
 </style></head>
 <body data-screen="input" data-mode="podcast">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="icon-sound" viewBox="0 0 24 24"><path d="M11 5L5 9H2v6h3l6 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol><symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-3 2 2-6a9 9 0 1 1 18-5Z"/><path d="M7 10h10M7 14h6"/></symbol><symbol id="icon-pen" viewBox="0 0 24 24"><path d="m15 3 6 6M3 21l2-7L17 2l5 5L10 19z"/></symbol></defs></svg>
@@ -155,7 +188,7 @@ body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data
    <div class="choice-card"><span class="eyebrow">YOUR STORY IS READY</span><h1>어떻게 말해볼까요?</h1><div class="story-summary"><p id="story-summary"></p><button id="edit-story" class="text-button">이야기 바꾸기</button></div><fieldset class="story-levels"><legend>같은 이야기, 다른 영어</legend><div class="level-options"><button type="button" data-level="1" aria-pressed="true"><strong>1단계</strong><small>아주 쉽게</small></button><button type="button" data-level="2" aria-pressed="false"><strong>2단계</strong><small>자연스럽게</small></button><button type="button" data-level="3" aria-pressed="false"><strong>3단계</strong><small>조금 더 풍부하게</small></button></div></fieldset><p id="story-kind" class="gentle-note"></p><div class="mode-options"><button data-mode="friend"><span class="mode-icon"><svg class="icon"><use href="#icon-chat"/></svg></span><span><strong>AI와 대화하기</strong><small>친구와 한마디씩 나누기</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button><button data-mode="podcast"><span class="mode-icon"><svg class="icon"><use href="#icon-mic"/></svg></span><span><strong>팟게스트 되어보기</strong><small>내 이야기를 들려주기</small></span><svg class="icon"><use href="#icon-arrow"/></svg></button></div><p class="gentle-note">같은 이야기로, 몇 번이든 편하게.</p></div>
   </div>
   <div id="practice-panel" class="panel" hidden>
-   <div class="practice-shell"><div class="practice-top"><button id="back-script" class="text-button">← 돌아가기</button><button class="diary-open text-button" type="button">일기장 ↗</button><span id="practice-label">팟게스트 되어보기</span></div><h1 class="sr-only" id="practice-title">말해보기</h1><p class="sr-only" id="practice-intro"></p>
+   <div class="practice-shell"><div class="practice-top"><button id="back-script" class="text-button">← 돌아가기</button><button class="diary-open text-button" type="button">일기장 ↗</button><span id="practice-label">팟게스트 되어보기</span><button type="button" id="studio-record" class="studio-record podcast-mic-control" aria-label="스튜디오 마이크 녹음 시작" aria-pressed="false"><span class="recording-orb" id="recording-orb"><svg class="icon"><use href="#icon-mic"/></svg></span><span id="studio-record-label" class="sr-only">마이크를 눌러 시작</span></button><span id="podcast-mic-status" role="status" class="sr-only"></span><span id="podcast-clock" hidden>00:00</span></div><h1 class="sr-only" id="practice-title">말해보기</h1><p class="sr-only" id="practice-intro"></p>
    <section id="friend-person" class="friend-person" hidden aria-label="내 이야기를 듣는 AI 친구">
     <div class="friend-portrait orb-scene" id="friend-portrait" data-form="glow" data-state="ready">
      <div class="orb-toolbar"><span id="friend-name">나의 영어 친구</span><button id="change-form" type="button" aria-label="AI 모습 바꾸기">↻ 모습 바꾸기</button></div>
@@ -164,11 +197,10 @@ body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data
     </div>
     <details class="friend-settings"><summary>목소리 <span>⚙</span></summary><div class="settings-content"><div class="person-options" role="group" aria-label="목소리 성별"><button data-person="female" aria-pressed="true">여성 목소리</button><button data-person="male" aria-pressed="false">남성 목소리</button></div><label for="friend-voice">목소리</label><select id="friend-voice"></select><button id="preview-voice" class="text-button">목소리 들어보기</button><small id="voice-help"></small></div></details>
    </section>
-   <div class="podcast-hero" id="podcast-hero"><span class="podcast-mic"><svg class="icon"><use href="#icon-mic"/></svg></span><span>오늘의 게스트는, 나.</span></div>
    <div id="friend-question" class="friend-question" hidden><span id="question-avatar" hidden>J</span><div><span class="speaker-label">친구의 질문</span><p id="question-en"></p><span id="question-ko"></span></div><button id="hear-question" class="round-control" aria-label="질문 다시 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button></div>
-   <div class="practice-paper"><div class="paper-heading"><span id="paper-label">내 이야기</span><button id="toggle-script" aria-pressed="false">가리며 말하기</button></div><div id="practice-script"></div><div id="hidden-script" hidden><button type="button" id="studio-record" class="studio-record" aria-label="스튜디오 마이크 녹음 시작" aria-pressed="false"><span class="recording-orb" id="recording-orb"><svg class="icon"><use href="#icon-mic"/></svg></span><span id="studio-record-label">마이크를 눌러 시작</span></button><div class="mic-level" aria-hidden="true"><span id="mic-level-fill"></span></div><span id="recording-clock" class="recording-clock">00:00</span><p id="hidden-title">당신의 이야기를 들려주세요.</p><small id="hidden-help">막히면 대본을 다시 볼 수 있어요.</small></div></div>
+   <div class="practice-paper"><div class="paper-heading"><span id="paper-label">내 이야기</span><button id="toggle-script" aria-pressed="false">가리며 말하기</button></div><div id="practice-script"></div><div id="hidden-script" hidden><div class="mic-level" aria-hidden="true"><span id="mic-level-fill"></span></div><span id="recording-clock" class="recording-clock">00:00</span><p id="hidden-title">당신의 이야기를 들려주세요.</p><small id="hidden-help">막히면 대본을 다시 볼 수 있어요.</small></div></div>
    <div id="live-voice" hidden><div class="voice-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="live-voice-label" role="status">마이크 연결 중</span></div><div id="recording-feedback" hidden><span id="mic-status" role="status">마이크 연결 중</span><span id="visible-clock">00:00</span></div><p id="reading-status" class="demo-note" role="status" hidden></p>
-   <div class="practice-controls"><button id="listen-practice" class="round-control" aria-label="대본 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button><button id="record" class="record-button" type="button" aria-pressed="false" data-state="ready"><span class="record-icon" aria-hidden="true">●</span><span class="record-label">시작</span></button><button id="restart" class="round-control" aria-label="처음부터 다시 연습">↺</button></div><p id="practice-status" role="status"></p><div id="recording-result"></div><button id="next-question" class="primary" hidden>다음 질문 →</button><p class="demo-note" id="practice-disclaimer"></p>
+   <div class="practice-controls"><button id="listen-practice" class="round-control" aria-label="대본 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button><button id="record" class="record-button" type="button" aria-pressed="false" data-state="ready"><span class="record-icon" aria-hidden="true">●</span><span class="record-label">시작</span></button><button id="restart" class="round-control" aria-label="처음부터 다시 연습">↺</button></div><p id="practice-status" role="status"></p><div id="recording-result"></div><button id="next-question" class="primary" hidden>다음 질문 →</button><p class="demo-note" id="practice-disclaimer"></p><p id="podcast-save-note" hidden>대본과 녹음은 일기장에 자동 저장돼요.</p>
    </div>
   </div>
   <div id="diary-panel" class="panel" hidden><div class="practice-shell diary-shell"><button id="diary-back" class="text-button">← 스튜디오로</button><span class="eyebrow">MY VOICE, DAY BY DAY</span><h1>나의 팟게스트 일기장</h1><p class="diary-intro">서툴렀던 오늘도, 나의 영어가 되는 기록.</p><p id="diary-summary" role="status"></p><p class="demo-note">이 브라우저에 저장돼요. 다른 기기와 공유되지 않으며, 브라우저 데이터를 지우면 사라질 수 있어요. 소중한 녹음은 내려받아 보관해 주세요.</p><div id="diary-list"></div></div></div>
@@ -515,7 +547,7 @@ function showWriting(focus=false) {
  $('writing-area').hidden=false;document.body.dataset.writing='true';
  if(focus)$('story').focus();
 }
-$('home').onclick=event=>{event.preventDefault();showStep(0);};
+$('home').onclick=event=>{event.preventDefault();showStep(0);$('writing-area').hidden=true;delete document.body.dataset.writing;};
 function stopSpeech() {
  finishSpeech(false);speechGeneration++; clearTimeout(speechStartTimer); clearTimeout(speechEndTimer); clearTimeout(speechQueueTimer); activeUtterance=null; speechRequest?.abort(); speechRequest=null;
  if(speechAudio){speechAudio.pause();speechAudio=null;}
@@ -603,19 +635,25 @@ function stopRecording() {
 }
 function updateRecordingUI() {
  const active = recorder?.state === 'recording';
+ const micActive=active || readingPractice;
  $('live-voice').hidden=!(readingPractice || active || recordPending || (mode==='friend' && conversationRunning));
  if(!active && !readingPractice)$('live-voice-label').textContent=recordPending?'마이크 연결 중…':speechActive?'친구가 이야기하고 있어요':'질문을 들은 뒤 이야기해 주세요';
  $('studio-record').hidden=mode!=='podcast';
  $('studio-record').disabled=recordPending || recordingFinalizing;
- $('studio-record').setAttribute('aria-pressed',String(active));
- $('studio-record').setAttribute('aria-label',active?'녹음을 마치고 일기장에 저장':'스튜디오 마이크 녹음 시작');
+ $('studio-record').setAttribute('aria-pressed',String(micActive));
+ $('studio-record').setAttribute('aria-label',active?'녹음을 마치고 일기장에 저장':'녹음 시작');
  $('studio-record-label').textContent=recordingFinalizing?'녹음 마치는 중…':recordPending?'마이크 연결 중…':active?'녹음 중 · 눌러서 마치기':'마이크를 눌러 시작';
- $('record').hidden=mode==='podcast' && hidden;
+ $('record').hidden=mode==='podcast';
+ $('practice-label').hidden=mode==='podcast';
+ $('podcast-save-note').hidden=mode!=='podcast';
+ $('practice-disclaimer').hidden=mode==='podcast';
+ $('podcast-clock').hidden=mode!=='podcast' || !active;
+ $('podcast-mic-status').textContent=mode!=='podcast'?'':recordPending?'마이크 연결 중':recordingFinalizing?'녹음 저장 중':readingPractice?'듣고 있어요':active?'녹음 중':'';
  $('recording-feedback').hidden=mode!=='podcast' || !hidden || (!active && !recordPending);
  $('visible-clock').hidden=hidden;
  if(recordPending)$('mic-status').textContent='마이크 연결 중 · 권한을 허용해 주세요';
  else if(active && mode==='podcast')$('mic-status').textContent='● 마이크 연결됨 · 녹음 중';
- $('recording-orb').classList.toggle('is-recording', active);
+ $('recording-orb').classList.toggle('is-recording', micActive);
  $('recording-orb').classList.toggle('is-pending', recordPending);
  const running=mode==='friend'?conversationRunning:readingPractice || active;
  const label=mode==='podcast' && !hidden?(recordPending?'마이크 연결 중…':readingPractice?'말하기 마치기':'시작하기'):mode==='friend'?(conversationRunning?'일시정지':conversationPaused?'이어하기':'시작'):recordPending?'마이크 연결 중…':active?'녹음 마치기':'시작하기';
@@ -655,11 +693,10 @@ function fillLines(container, lines) {
  container.replaceChildren();
  for (const [en,ko] of lines) { const div = document.createElement('div'); div.className='script-line'; const p=document.createElement('p'); p.textContent=en; const small=document.createElement('small'); small.textContent=ko; div.append(p,small); container.append(div); }
 }
-function resetAudio() { const old=$('recording-result').querySelector('audio'); if(old)old.pause(); playbackActive=false; if (audioURL) URL.revokeObjectURL(audioURL); audioURL=null; $('recording-result').replaceChildren(); $('recording-clock').textContent='00:00';$('visible-clock').textContent='00:00'; updateAmbience(); }
+function resetAudio() { const old=$('recording-result').querySelector('audio'); if(old)old.pause(); playbackActive=false; if (audioURL) URL.revokeObjectURL(audioURL); audioURL=null; $('recording-result').replaceChildren(); $('recording-clock').textContent='00:00';$('visible-clock').textContent='00:00';$('podcast-clock').textContent='00:00'; updateAmbience(); }
 function renderPractice() {
  const data=examples[selected];
  document.body.dataset.mode=mode;
- $('podcast-hero').hidden=mode!=='podcast';
  $('friend-question').hidden = mode !== 'friend';
  $('friend-person').hidden = mode !== 'friend';
  $('next-question').hidden = mode !== 'friend';
@@ -670,14 +707,14 @@ function renderPractice() {
  const span=document.createElement('span'); span.textContent=mode==='friend'?'이야기해 볼까요?':'당신이에요.'; $('practice-title').append(span);
  $('practice-intro').textContent=mode==='friend'?'내 이야기를 아는 친구와, 한 문장씩 천천히.':'천천히, 내 속도로. 몇 번을 다시 해도 괜찮아요.';
  $('paper-label').textContent=mode==='friend'?'이렇게 답해볼까요?':'내 이야기';
- $('practice-disclaimer').textContent=mode==='friend'?(data.isExample?'예시 이야기로 대화 연습을 해요.':'내 이야기로 만든 질문과 예시 답변이에요. 말소리가 끝나면 다음 질문으로 이어져요.'):hidden?'마이크로 녹음한 이야기만 일기장에 저장돼요.':'내 목소리에 파형만 반응해요. 녹음 파일은 만들거나 저장하지 않아요.';
+ $('practice-disclaimer').textContent=mode==='friend'?(data.isExample?'예시 이야기로 대화 연습을 해요.':'내 이야기로 만든 질문과 예시 답변이에요. 말소리가 끝나면 다음 질문으로 이어져요.'):'대본과 녹음은 일기장에 자동 저장돼요.';
  const question=conversationComplete?(examples[selected].ending || conversationEndings[selected]):data.turns[turn];
  $('question-en').textContent=question[0]; $('question-ko').textContent=question[1];
  fillLines($('practice-script'),mode==='friend'?[(data.answerLines || data.lines)[data.turns[turn][2]]]:data.lines);
  $('next-question').textContent=conversationComplete || turn===data.turns.length-1?'다시 대화하기 ↺':'다음 질문 →';
  $('practice-script').hidden=hidden; $('hidden-script').hidden=!hidden;
  $('toggle-script').textContent=hidden?'대본 다시 보기':mode==='friend'?'대본 가리기':'가리며 말하기'; $('toggle-script').setAttribute('aria-pressed',String(hidden));
- $('practice-status').textContent=mode==='podcast'?(hidden?'마이크를 눌러 녹음하고, 다시 눌러 마치면 일기장에 저장돼요.':'시작하기를 누르고 편하게 읽어주세요. 내 목소리에 파형이 움직여요.'):conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
+ $('practice-status').textContent=mode==='podcast'?'마이크를 눌러 녹음해 주세요.':conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
  updateRecordingUI();
 }
 function syncLevels(){
@@ -737,13 +774,13 @@ $('cancel-generation').onclick=()=>{cancelStoryGeneration();notice('작성을 �
 $('edit-story').onclick=()=>showStep(0);
 document.querySelectorAll('button[data-mode]').forEach(button=>button.onclick=()=>{ if(!selected || !examples[selected]){notice('먼저 내 이야기로 영어 대본을 만들어주세요.');return;} mode=button.dataset.mode; turn=0; hidden=false;conversationComplete=false; resetAudio(); showStep(2); renderPractice(); if(mode==='friend')chooseOrbForm(); });
 $('back-script').onclick=()=>showStep(1);
-$('toggle-script').onclick=()=>{if(mode==='podcast'){cancelRecordingSession();resetAudio();}hidden=!hidden;renderPractice();};
+$('toggle-script').onclick=()=>{hidden=!hidden;renderPractice();};
 $('hear-question').onclick=()=>{cancelConversationResponse();speak($('question-en').textContent);};
 $('listen-practice').onclick=()=>speak(mode==='friend'?(examples[selected].answerLines || examples[selected].lines)[examples[selected].turns[turn][2]][0]:examples[selected].lines.map(l=>l[0]).join(' '));
 $('next-question').onclick=skipConversationTurn;
 $('restart').onclick=()=>{ cancelRecordingSession(); stopSpeech(); resetAudio(); turn=0;conversationComplete=false;hidden=false;renderPractice(); notice('괜찮아요. 처음부터 천천히 다시 해봐요.'); };
 async function startRecording({session=false}={}) {
- if(!session && (mode!=='podcast' || !hidden))return false;
+ if(!session && mode!=='podcast')return false;
  const sessionEpoch=conversationEpoch;
  if(recordPending || recordingFinalizing) return false;
  if(recorder?.state==='recording') return true;
@@ -806,7 +843,7 @@ async function startRecording({session=false}={}) {
   const meterReady=startMicMeter(localStream);
   if(session && !meterReady){endConversation('음성 감지를 시작하지 못했어요. 마이크를 확인해 주세요.');return false;}
   recordingStarted=Date.now();
-  recordTimer=setInterval(()=>{const sec=Math.floor((Date.now()-recordingStarted)/1000);$('recording-clock').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;$('visible-clock').textContent=$('recording-clock').textContent;},250);
+  recordTimer=setInterval(()=>{const sec=Math.floor((Date.now()-recordingStarted)/1000);$('recording-clock').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;$('visible-clock').textContent=$('recording-clock').textContent;$('podcast-clock').textContent=$('recording-clock').textContent;},250);
   timeout=setTimeout(()=>session?endConversation('대화를 잠시 마쳤어요. 시작을 눌러 이어가세요.'):stopRecording(),180000);
   $('practice-status').textContent=session?'듣고 있어요. 다 말하고 잠깐 기다리면 다음 질문으로 이어져요.':'녹음 중이에요. 편하게 이야기해 주세요. (최대 3분)';notice();updateAmbience();return true;
  }catch(error){
@@ -818,7 +855,7 @@ async function startRecording({session=false}={}) {
  }
  finally{if(epoch===recordingEpoch){recordPending=false;updateRecordingUI();if(recorder?.state!=='recording' && hidden){$('hidden-title').textContent='마이크 연결을 확인해 주세요.';$('hidden-help').textContent='마이크 권한을 확인하고 마이크를 다시 눌러주세요. 미리보기에서 권한을 제한할 수도 있어요.';}}}
 }
-$('record').onclick=()=>{if(mode==='friend'){if(conversationRunning)pauseConversation();else startConversation();}else if(!hidden){if(readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();$('practice-status').textContent='읽기 연습을 마쳤어요. 시작하기를 누르면 다시 연습할 수 있어요.';}else startReadingPractice();}else if(recorder?.state==='recording')stopRecording();else startRecording();};
+$('record').onclick=()=>{if(mode==='friend'){if(conversationRunning)pauseConversation();else startConversation();}else $('studio-record').click();};
 function loadVoices() {
  const current=$('friend-voice').value;
  const profiles=speechProfiles();
@@ -913,7 +950,7 @@ function pauseDiary(){
 }
 async function savePodcastTake(blob,createdAt,seconds,story,lines,title,level){
  const entry={id:crypto.randomUUID(),createdAt,seconds,story,lines,blob,level:level||1,title:title||`${new Date(createdAt).toLocaleDateString('ko-KR')} 나의 이야기`};
- try{await diaryStore.put(entry);notice('팟게스트 일기장에 저장했어요. 일기장에서 제목을 바꾸고 다시 들을 수 있어요.');}
+ try{await diaryStore.put(entry);notice('일기장에 저장했어요.');}
  catch{unsavedTakes.set(entry.id,entry);notice('브라우저에 저장하지 못했어요. 일기장에서 녹음을 내려받아 주세요. 이 창을 닫으면 미저장 녹음은 사라져요.');}
  if(document.body.dataset.screen==='diary')renderDiary();
 }

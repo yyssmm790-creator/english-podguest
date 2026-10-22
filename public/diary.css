@@ -27,3 +27,36 @@ body[data-mode=podcast] #record[data-state=running]{background:#b05a47}body[data
 .saved-stories{margin:24px 0;color:#667953;font-size:13px}.saved-stories summary{cursor:pointer;padding:14px 0}.saved-stories small{display:block;line-height:1.7}.saved-story-row{display:flex;align-items:center;gap:12px;border-top:1px solid #dce3d0;padding:8px 0}.saved-story-open{flex:1;min-width:0;text-align:left;border:0;background:transparent;padding:12px 0;color:#3f4b39;cursor:pointer}.saved-story-open strong,.saved-story-open span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.saved-story-open span{margin:6px 0;font-size:13px;font-weight:400}.saved-story-row>button{min-height:44px}.saved-story-row>.text-button{min-width:44px}
 
 .recording-actions{display:flex;flex-direction:column;align-items:flex-start;gap:4px}.recording-actions a,.recording-actions button{display:inline-flex;align-items:center;min-height:44px}.delete-recording{color:#a65240}
+
+/* Compact podcast reading screen. Keep the microphone reachable while scrolling. */
+header{position:sticky;top:0;z-index:20;background:var(--cream)}
+.brand{min-height:44px;justify-content:center}
+body[data-screen=practice][data-mode=podcast] .practice-top{position:sticky;top:78px;z-index:10;background:#faf8f0;gap:8px;flex-wrap:nowrap;margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--line)}
+body[data-mode=podcast] .practice-top .diary-open{margin-left:auto!important}
+body[data-mode=podcast] .practice-paper{border-top:0;padding-top:4px}
+body[data-mode=podcast] .paper-heading{margin-bottom:10px}
+body[data-mode=podcast] #practice-script .script-line{padding:0;margin:0 0 14px}
+body[data-mode=podcast] #practice-script .script-line:last-child{margin-bottom:0}
+body[data-mode=podcast] #practice-script .script-line p{font-size:24px;line-height:1.35;margin:0 0 4px;letter-spacing:-.4px}
+body[data-mode=podcast] #practice-script .script-line small{font-size:12px;line-height:1.5;display:block}
+body[data-mode=podcast] .practice-controls{margin-top:14px;gap:18px}
+body[data-mode=podcast] #practice-status,body[data-mode=podcast] #live-voice,body[data-mode=podcast] #recording-feedback,body[data-mode=podcast] #hidden-help,body[data-mode=podcast] .mic-level,body[data-mode=podcast] #recording-clock{display:none}
+#podcast-save-note{text-align:center;font-size:11px;line-height:1.5;color:#879477;margin:12px 0 0}
+#podcast-clock{font-size:12px;font-variant-numeric:tabular-nums;color:#a1513e;white-space:nowrap}
+.practice-top .podcast-mic-control{position:relative;display:grid;place-items:center;width:44px;min-width:44px;height:44px;margin:0;padding:0;border:1px solid #d8e1ca;border-radius:50%;background:#edf1e3;touch-action:manipulation}
+.practice-top .podcast-mic-control .recording-orb{display:grid;place-items:center;width:24px;height:28px;margin:0;border:0;border-radius:0;box-shadow:none;background:none;color:inherit;transform:scale(calc(1 + var(--mic-level,0)*.15))}
+.practice-top .podcast-mic-control .recording-orb:before,.practice-top .podcast-mic-control .recording-orb:after{display:none}
+.practice-top .podcast-mic-control .icon{width:24px;height:28px;stroke-width:1.6}
+.practice-top .podcast-mic-control[aria-pressed=true]{background:#ae5b48;color:#fff8ec;border-color:#ae5b48;box-shadow:0 0 0 calc(var(--mic-level,0)*7px) #ae5b4826}
+.practice-top .podcast-mic-control .is-recording{animation:none}
+.practice-top .podcast-mic-control:disabled{opacity:.6}
+@media(max-width:760px){
+ body[data-screen=practice][data-mode=podcast] .practice-top{top:70px}
+ body[data-mode=podcast] .practice-shell{margin:10px auto;padding:10px 16px 14px}
+ body[data-mode=podcast] #practice-script .script-line{margin-bottom:12px}
+ body[data-mode=podcast] #practice-script .script-line p{font-size:21px;line-height:1.35}
+ body[data-mode=podcast] #practice-script .script-line small{font-size:12px;line-height:1.45}
+}
+
+body[data-screen=practice] main{overflow:clip}
+body[data-mode=podcast] #recording-result{display:none}
