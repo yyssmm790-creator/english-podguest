@@ -34,3 +34,11 @@ Do not label these results as complete iOS/Android certification. Free-story AI 
 - Script spacing and font size reduced while keeping Korean translations readable. 320–768px layouts checked; a four-line sample fits at 390×844. Long scripts remain scrollable. Header brand returns to the initial studio and closes/saves an active take.
 - Script hiding no longer stops/splits recording. Finishing from the top mic or navigating home stores the script/source/audio together. Recording-file-only deletion remains available.
 - Optional browser regression: `tests/compact-podcast.browser.mjs` (same Playwright/BASE_URL environment options as other browser scripts). Uses a controlled audio stream; no physical iPhone/Android audio verification.
+
+## 2026-10-22 common AI voices update
+
+Replaced device synthesis with a fixed OpenAI voice catalog and shared server audio. The browser regression injects failures if device voices are queried or spoken, and uses controlled native WAV playback to verify a common Nova default, audio reuse, API failure recovery, user-listening state and pause/resume on desktop/iPhone viewport profiles. These remain Chromium simulations, not physical iOS validation. Paid OpenAI audio/voice quality was not exercised locally.
+
+## 2026-10-22 explicit favorites and text resume
+
+Supersedes the earlier compact-screen automatic-save flow above. Visible script uses a small microphone and listen-English/listen-own/retry icons. Hidden script restores the large studio microphone and listen-own/save/retry icons. Only the explicit save action creates a diary pair. Unchosen audio stays in page memory; reload restores text/stage without activating recording or autoplay. Existing diary audio deletion still preserves its script. Browser checks cover these distinctions with actual controlled MediaRecorder audio; physical microphone/iOS behavior still requires testing.

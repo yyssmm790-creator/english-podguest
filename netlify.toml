@@ -21,3 +21,15 @@
   to = "/.netlify/functions/story"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/speech"
+  to = "/.netlify/functions/speech"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/voice-status"
+  to = "/.netlify/functions/voice-status"
+  status = 200
+  force = true

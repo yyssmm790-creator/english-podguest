@@ -165,6 +165,21 @@ body[data-mode=podcast] #practice-status,body[data-mode=podcast] #live-voice,bod
 
 body[data-screen=practice] main{overflow:clip}
 body[data-mode=podcast] #recording-result{display:none}
+/* Two podcast stages: small reading mic, original studio recording mic. */
+body[data-mode=podcast][data-podcast-stage=hidden] #hidden-script .mic-level{display:block}
+body[data-mode=podcast][data-podcast-stage=hidden] #hidden-script #recording-clock{display:block;font-size:23px;margin:8px 0}
+body[data-mode=podcast][data-podcast-stage=hidden] #hidden-help{display:none}
+body[data-mode=podcast][data-podcast-stage=hidden] #hidden-title{font-size:12px;line-height:1.5;margin:10px 0}
+body[data-mode=podcast][data-podcast-stage=hidden] .practice-controls{margin-top:8px}
+body[data-mode=podcast][data-podcast-stage=hidden] .practice-top .diary-open{margin-left:auto!important}
+#large-studio-record{margin:14px auto 4px;gap:12px}
+#large-studio-record .recording-orb{width:130px;height:170px;margin-bottom:24px}
+#large-studio-record .icon{width:50px;height:50px}
+#large-studio-record-label{font-size:12px}
+#listen-own[aria-pressed=true]{background:#e1e9d6;border-color:#82986c}
+#save-take:disabled{opacity:.38}
+.resume-practice{border:1px solid #dce3cf;background:#faf8ef;color:#61774d;border-radius:12px;padding:12px 16px;min-height:44px;font-size:12px;margin:14px 0 0;max-width:100%}
+@media(prefers-reduced-motion:reduce){.practice-top .podcast-mic-control .recording-orb{transform:none}}
 </style></head>
 <body data-screen="input" data-mode="podcast">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="icon-sound" viewBox="0 0 24 24"><path d="M11 5L5 9H2v6h3l6 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol><symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-3 2 2-6a9 9 0 1 1 18-5Z"/><path d="M7 10h10M7 14h6"/></symbol><symbol id="icon-pen" viewBox="0 0 24 24"><path d="m15 3 6 6M3 21l2-7L17 2l5 5L10 19z"/></symbol></defs></svg>
@@ -180,7 +195,7 @@ body[data-mode=podcast] #recording-result{display:none}
     <button id="voice-tab" class="hero-mic" aria-label="마이크를 눌러 오늘의 이야기 말하기" aria-pressed="false"><svg class="icon"><use href="#icon-mic"/></svg><span>눌러서 이야기하기</span></button>
     <div id="voice-status" class="voice-status" role="status">두서없어도 괜찮아요. 당신의 이야기니까.</div>
     <button class="write-button" id="write-tab"><svg class="icon"><use href="#icon-pen"/></svg><span>글로 남기기</span></button>
-    <section class="saved-stories" aria-label="저장한 이야기"><p id="story-save-status" role="status">작성 중인 이야기와 만든 대본은 이 브라우저에 자동 저장돼요.</p><details><summary>지난 이야기로 다시 연습하기</summary><div id="saved-story-list"></div></details><small>같은 기기·브라우저에서 이어 연습할 수 있어요. 브라우저 데이터를 지우면 사라져요.</small></section>
+    <button id="resume-practice" class="resume-practice" type="button" hidden>중단한 연습 이어보기 ↗</button><section class="saved-stories" aria-label="저장한 이야기"><p id="story-save-status" role="status">작성 중인 연습은 이 브라우저에서 이어볼 수 있어요.</p><details><summary>이전에 보관한 대본</summary><div id="saved-story-list"></div></details><small>같은 기기·브라우저에서 이어 연습할 수 있어요. 브라우저 데이터를 지우면 사라져요.</small></section>
     <details class="examples"><summary>먼저 예시로 둘러볼까요? <span>↗</span></summary><div class="example-row"><button data-example="coffee">☕ 혼자 마신 커피</button><button data-example="work">☁ 지친 하루</button><button data-example="walk">🌿 저녁 산책</button></div><p>예시 대본은 AI 연결 없이도 둘러볼 수 있어요.</p></details>
    </div>
   </div>
@@ -198,26 +213,21 @@ body[data-mode=podcast] #recording-result{display:none}
     <details class="friend-settings"><summary>목소리 <span>⚙</span></summary><div class="settings-content"><div class="person-options" role="group" aria-label="목소리 성별"><button data-person="female" aria-pressed="true">여성 목소리</button><button data-person="male" aria-pressed="false">남성 목소리</button></div><label for="friend-voice">목소리</label><select id="friend-voice"></select><button id="preview-voice" class="text-button">목소리 들어보기</button><small id="voice-help"></small></div></details>
    </section>
    <div id="friend-question" class="friend-question" hidden><span id="question-avatar" hidden>J</span><div><span class="speaker-label">친구의 질문</span><p id="question-en"></p><span id="question-ko"></span></div><button id="hear-question" class="round-control" aria-label="질문 다시 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button></div>
-   <div class="practice-paper"><div class="paper-heading"><span id="paper-label">내 이야기</span><button id="toggle-script" aria-pressed="false">가리며 말하기</button></div><div id="practice-script"></div><div id="hidden-script" hidden><div class="mic-level" aria-hidden="true"><span id="mic-level-fill"></span></div><span id="recording-clock" class="recording-clock">00:00</span><p id="hidden-title">당신의 이야기를 들려주세요.</p><small id="hidden-help">막히면 대본을 다시 볼 수 있어요.</small></div></div>
+   <div class="practice-paper"><div class="paper-heading"><span id="paper-label">내 이야기</span><button id="toggle-script" aria-pressed="false">가리며 말하기</button></div><div id="practice-script"></div><div id="hidden-script" hidden><button type="button" id="large-studio-record" class="studio-record" aria-label="녹음 시작" aria-pressed="false"><span class="recording-orb" id="large-recording-orb"><svg class="icon"><use href="#icon-mic"/></svg></span><span id="large-studio-record-label">마이크를 눌러 시작</span></button><div class="mic-level" aria-hidden="true"><span id="mic-level-fill"></span></div><span id="recording-clock" class="recording-clock">00:00</span><p id="hidden-title">당신의 이야기를 들려주세요.</p><small id="hidden-help">막히면 대본을 다시 볼 수 있어요.</small></div></div>
    <div id="live-voice" hidden><div class="voice-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="live-voice-label" role="status">마이크 연결 중</span></div><div id="recording-feedback" hidden><span id="mic-status" role="status">마이크 연결 중</span><span id="visible-clock">00:00</span></div><p id="reading-status" class="demo-note" role="status" hidden></p>
-   <div class="practice-controls"><button id="listen-practice" class="round-control" aria-label="대본 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button><button id="record" class="record-button" type="button" aria-pressed="false" data-state="ready"><span class="record-icon" aria-hidden="true">●</span><span class="record-label">시작</span></button><button id="restart" class="round-control" aria-label="처음부터 다시 연습">↺</button></div><p id="practice-status" role="status"></p><div id="recording-result"></div><button id="next-question" class="primary" hidden>다음 질문 →</button><p class="demo-note" id="practice-disclaimer"></p><p id="podcast-save-note" hidden>대본과 녹음은 일기장에 자동 저장돼요.</p>
+   <div class="practice-controls"><button id="listen-practice" class="round-control" aria-label="대본 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button><button id="listen-own" class="round-control" type="button" aria-label="내 목소리 듣기" title="내 목소리 듣기" hidden><span aria-hidden="true">🗣️</span></button><button id="save-take" class="round-control" type="button" aria-label="대본과 녹음파일 저장" title="대본과 녹음파일 저장" hidden><span aria-hidden="true">💾</span></button><button id="record" class="record-button" type="button" aria-pressed="false" data-state="ready"><span class="record-icon" aria-hidden="true">●</span><span class="record-label">시작</span></button><button id="restart" class="round-control" aria-label="처음부터 다시 연습">↺</button></div><p id="practice-status" role="status"></p><div id="recording-result"></div><button id="next-question" class="primary" hidden>다음 질문 →</button><p class="demo-note" id="practice-disclaimer"></p><p id="podcast-save-note" hidden>말한 뒤 🗣️로 들어보세요.</p>
    </div>
   </div>
-  <div id="diary-panel" class="panel" hidden><div class="practice-shell diary-shell"><button id="diary-back" class="text-button">← 스튜디오로</button><span class="eyebrow">MY VOICE, DAY BY DAY</span><h1>나의 팟게스트 일기장</h1><p class="diary-intro">서툴렀던 오늘도, 나의 영어가 되는 기록.</p><p id="diary-summary" role="status"></p><p class="demo-note">이 브라우저에 저장돼요. 다른 기기와 공유되지 않으며, 브라우저 데이터를 지우면 사라질 수 있어요. 소중한 녹음은 내려받아 보관해 주세요.</p><div id="diary-list"></div></div></div>
+  <div id="diary-panel" class="panel" hidden><div class="practice-shell diary-shell"><button id="diary-back" class="text-button">← 스튜디오로</button><span class="eyebrow">MY VOICE, DAY BY DAY</span><h1>나의 팟게스트 일기장</h1><p class="diary-intro">서툴렀던 오늘도, 나의 영어가 되는 기록.</p><p id="diary-summary" role="status"></p><p class="demo-note">💾로 선택한 대본과 녹음이 이 브라우저에 저장돼요. 다른 기기와 공유되지 않으며, 브라우저 데이터를 지우면 사라질 수 있어요. 소중한 녹음은 내려받아 보관해 주세요.</p><div id="diary-list"></div></div></div>
   <p id="notice" class="notice" role="status" aria-live="polite"></p>
  </section>
 </main><footer>나의 하루가, 나의 영어가 되는 곳.</footer>
-<script id="studio-app">// Fixed Azure Speech catalog. Do not infer gender from browser voice ordering.
+<script id="studio-app">// Shared AI voices: the same catalog and generated audio on every device.
 const VOICE_CATALOG = [
- {id:'en-US-JennyNeural',name:'Jenny',gender:'female'},
- {id:'en-US-AriaNeural',name:'Aria',gender:'female'},
- {id:'en-US-AvaNeural',name:'Ava',gender:'female'},
- {id:'en-US-EmmaNeural',name:'Emma',gender:'female'},
- {id:'en-US-MichelleNeural',name:'Michelle',gender:'female'},
- {id:'en-US-GuyNeural',name:'Guy',gender:'male'},
- {id:'en-US-AndrewNeural',name:'Andrew',gender:'male'},
- {id:'en-US-BrianNeural',name:'Brian',gender:'male'},
- {id:'en-US-EricNeural',name:'Eric',gender:'male'}
+ {id:'nova',name:'Nova · 부드럽게',gender:'female'},
+ {id:'shimmer',name:'Shimmer · 밝게',gender:'female'},
+ {id:'onyx',name:'Onyx · 차분하게',gender:'male'},
+ {id:'echo',name:'Echo · 편안하게',gender:'male'}
 ];
 
 // Local volume-based turn detection. It does not transcribe or understand speech.
@@ -360,17 +370,38 @@ const examples = {
 let chosenLevel=1,activeExampleKey=null,personalStory=null,storyRequest=null,storyGenerationEpoch=0;
 let selected = null, mode = 'podcast', turn = 0, hidden = false, conversationComplete = false;
 let recorder = null, stream = null, audioURL = null, timeout = null;
+let latestPracticeTake=null,takeGeneration=0,savingTake=false;
 let recordTimer = null, recordingStarted = 0, recordingEpoch = 0, recordPending = false, recordingFinalizing = false, playbackActive = false;
-let friendPerson = "female", cloudVoicesReady = false, speechAudio = null, speechAudioURL = null, speechRequest = null;
+let friendPerson = "female", cloudVoicesReady = true, speechAudio = null, speechAudioURL = null, speechRequest = null;
 let readingPractice=false, readingStream=null, readingEpoch=0;
 let recognition = null, voiceActive = false, listening = false, continueAfterVoice = false;
 let audioContext = null, soundEnabled = false, musicRequested = false, musicVersion = 0;
 let cafeTrackIndex=0,musicSwitching=false;
 let speechActive = false, speechGeneration = 0, activeUtterance = null;
 let speechStartTimer = null, speechEndTimer = null, speechQueueTimer = null;
-const voicePlaybackFailures = new Set();
-try{const failed=JSON.parse(localStorage.getItem('podguest-unavailable-voices')||'[]');if(Array.isArray(failed))for(const id of failed)if(typeof id==='string')voicePlaybackFailures.add(id);}catch{}
-function rememberVoiceFailure(id){voicePlaybackFailures.add(id);try{localStorage.setItem('podguest-unavailable-voices',JSON.stringify([...voicePlaybackFailures]));}catch{}}
+const commonSpeechPlayer=new Audio(),ownVoicePlayer=new Audio();
+let ownVoiceUnlocked=false;
+const speechCache=new Map();let speechCacheBytes=0,commonSpeechUnlocked=false;
+const speechUnlockSource='data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YSADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==';
+function unlockCommonSpeech(){
+ if(commonSpeechUnlocked)return;
+ commonSpeechPlayer.src=speechUnlockSource;
+ // Reuse this player after the request, including subsequent automatic questions.
+ try{commonSpeechPlayer.play().then(()=>{commonSpeechUnlocked=true;}).catch(()=>{});}catch{}
+}
+function unlockOwnVoicePlayback(){
+ ownVoicePlayer.pause();
+ if(ownVoiceUnlocked)return;
+ ownVoicePlayer.onplay=null;ownVoicePlayer.onpause=null;ownVoicePlayer.onended=null;
+ ownVoicePlayer.src=speechUnlockSource;
+ try{ownVoicePlayer.play().then(()=>{ownVoiceUnlocked=true;}).catch(()=>{});}catch{}
+}
+function cacheSpeech(key,blob){
+ while(speechCache.size && (speechCache.size>=16 || speechCacheBytes+blob.size>10000000)){
+  const oldest=speechCache.keys().next().value;speechCacheBytes-=speechCache.get(oldest).size;speechCache.delete(oldest);
+ }
+ speechCache.set(key,blob);speechCacheBytes+=blob.size;
+}
 let responseTimer=null, responseVersion=0, conversationPending=false;
 let meterFrame=null, meterSource=null, meterAnalyser=null;
 let conversationPaused=false,conversationStage='question',pausedConversationStage='question';
@@ -404,7 +435,7 @@ function stopMicMeter() {
  if(meterFrame!==null)cancelAnimationFrame(meterFrame);meterFrame=null;
  meterSource?.disconnect();meterAnalyser?.disconnect();meterSource=null;meterAnalyser=null;
  $('friend-portrait').style.setProperty('--level','0');
- $('studio-record').style.setProperty('--mic-level','0');
+ $('studio-record').style.setProperty('--mic-level','0');$('large-studio-record').style.setProperty('--mic-level','0');
  $('mic-level-fill').style.width='0%';
  $('live-voice').classList.remove('voice-detected');
  document.querySelectorAll('.voice-wave i').forEach(bar=>bar.style.setProperty('--voice-height','.08'));
@@ -436,7 +467,7 @@ function startMicMeter(micStream) {
    if(mode==='friend' && conversationRunning && recorder?.state==='recording' && turnDetector.observe(rms,performance.now())){stopRecording();return;}
    level=level*.65+Math.min(1,rms*8)*.35;
    $('friend-portrait').style.setProperty('--level','0');
-   $('studio-record').style.setProperty('--mic-level',level.toFixed(3));
+   $('studio-record').style.setProperty('--mic-level',level.toFixed(3));$('large-studio-record').style.setProperty('--mic-level',level.toFixed(3));
    if(mode==='podcast' && !readingPractice){const status=rms>.015?'● 목소리 감지 중 · 녹음 중':'● 마이크 연결됨 · 녹음 중';if($('mic-status').textContent!==status)$('mic-status').textContent=status;}
    $('mic-level-fill').style.width=`${Math.round(level*100)}%`;
    meterFrame=requestAnimationFrame(tick);
@@ -478,7 +509,7 @@ async function startConversation() {
  const resume=conversationPaused,resumeStage=pausedConversationStage;
  loadVoices();
  const profile=selectedSpeechProfile();
- if(!profile || (!cloudVoicesReady && !matchingLocalVoice(profile))){notice('먼저 ‘목소리’에서 재생 가능한 음성을 선택해 주세요.');return;}
+ if(!profile || !cloudVoicesReady){notice('먼저 ‘목소리’에서 재생 가능한 음성을 선택해 주세요.');return;}
  if(!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder || !(window.AudioContext||window.webkitAudioContext)){
   notice('대화는 마이크를 사용할 수 있는 Chrome 또는 Edge에서 열어주세요.');return;
  }
@@ -555,76 +586,45 @@ function stopSpeech() {
  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
  listening=false;speechActive=false;updateAmbience();
 }
-function speechProfiles(){
- if(cloudVoicesReady)return VOICE_CATALOG.filter(voice=>voice.gender===friendPerson && !voicePlaybackFailures.has(voice.id));
- if(!('speechSynthesis' in window))return [];
- const voices=speechSynthesis.getVoices().filter(voice=>/^en([_-]|$)/i.test(voice.lang));
- const profiles=[...new Map(voices.map(voice=>[voice.voiceURI||voice.name+'-'+voice.lang,voice])).values()]
-  // These four online voices were reported as unplayable on the user's device.
-  .filter(voice=>!/^Microsoft (Annette|Carly|Darren|Duncan) Online\b/i.test(voice.name))
-  .map(voice=>({id:'device:'+encodeURIComponent(voice.voiceURI||voice.name+'-'+voice.lang),name:voice.name+' · '+voice.lang,localVoice:voice}))
-  .filter(profile=>!voicePlaybackFailures.has(profile.id)).slice(0,10);
- if(voices.length)return profiles;
- return voicePlaybackFailures.has('device:default')?[]:[{id:'device:default',name:'기기 기본 영어',defaultVoice:true}];
-}
+function speechProfiles(){return VOICE_CATALOG.filter(voice=>voice.gender===friendPerson);}
 function selectedSpeechProfile(){return speechProfiles().find(voice=>voice.id===$('friend-voice').value);}
-function matchingLocalVoice(profile){
- if(!profile || !('speechSynthesis' in window))return null;
- if(profile.defaultVoice)return {lang:'en-US',defaultVoice:true};
- return profile.localVoice || speechSynthesis.getVoices().find(voice=>/^en([_-]|$)/i.test(voice.lang) && voice.name.toLowerCase().split(/[^a-z]+/).includes(profile.name.toLowerCase())) || null;
-}
 async function speak(text) {
  if(listening){stopSpeech();return false;}
  const profile=selectedSpeechProfile();
- if(!profile){notice('이 목소리를 아직 사용할 수 없어요. 선택한 음성은 전용 음성 서비스 연결 후 이용할 수 있어요.');return false;}
- const local=matchingLocalVoice(profile);
- if(!cloudVoicesReady && !local){notice('지금은 이 목소리를 재생할 수 없어요. ‘친구 설정’에서 다른 목소리를 선택해 주세요.');return false;}
+ if(!profile || !cloudVoicesReady){notice('공통 AI 음성을 연결하지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.');return false;}
  stopSpeech();
  const generation=++speechGeneration;
  const completion=new Promise(resolve=>{speechCompletion=resolve;});
- const finish=()=>{if(generation!==speechGeneration)return;clearTimeout(speechStartTimer);clearTimeout(speechEndTimer);activeUtterance=null;listening=false;speechActive=false;updateAmbience();finishSpeech(true);};
- const fail=()=>{
+ const finish=()=>{if(generation!==speechGeneration)return;clearTimeout(speechStartTimer);clearTimeout(speechEndTimer);listening=false;speechActive=false;updateAmbience();finishSpeech(true);};
+ const fail=message=>{
   if(generation!==speechGeneration)return;
-  rememberVoiceFailure(profile.id);stopSpeech();loadVoices();
-  notice('재생되지 않는 목소리를 목록에서 뺐어요. 다른 목소리를 선택해 주세요.');
+  stopSpeech();loadVoices();
+  notice(typeof message==='string'?message:'음성을 재생하지 못했어요. 다시 듣기를 눌러주세요.');
  };
- const started=()=>{
-  if(generation!==speechGeneration)return;
-  clearTimeout(speechStartTimer);voicePlaybackFailures.delete(profile.id);loadVoices();
-  speechActive=true;updateAmbience();notice();
-  // A long reading reaching the playback limit does not mean its voice is unavailable.
-  speechEndTimer=setTimeout(()=>{if(generation!==speechGeneration)return;stopSpeech();notice('음성 재생을 잠시 마쳤어요. 다시 듣기를 누르면 재생돼요.');},60000);
- };
- listening=true;updateOrbState();
- if(cloudVoicesReady){
-  try {
-   speechRequest=new AbortController();
-   notice(`${profile.name} 목소리를 준비하고 있어요…`);speechStartTimer=setTimeout(fail,25000);
+ listening=true;updateOrbState();unlockCommonSpeech();
+ try {
+  speechRequest=new AbortController();
+  notice('목소리를 준비하고 있어요…');speechStartTimer=setTimeout(()=>fail('음성 준비가 늦어지고 있어요. 다시 눌러주세요.'),30000);
+  const key=profile.id+'\n'+text;
+  let blob=speechCache.get(key);
+  if(!blob){
    const response=await fetch('/api/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice:profile.id}),signal:speechRequest.signal});
-   if(!response.ok)throw new Error('speech_failed');
-   const blob=await response.blob();if(generation!==speechGeneration)return;
-   speechAudioURL=URL.createObjectURL(blob);speechAudio=new Audio(speechAudioURL);
-   speechAudio.onended=finish;speechAudio.onerror=fail;
-   await speechAudio.play();if(generation!==speechGeneration)return;
-   started();
-  }catch(error){if(generation!==speechGeneration)return;if(error.name!=='AbortError')fail();else finish();}
-  return completion;
- }
- const utterance=new SpeechSynthesisUtterance(text);activeUtterance=utterance;utterance.lang=local.lang;utterance.rate=mode==='friend'?.92:.82;utterance.voice=local.defaultVoice?null:local;
- utterance.onstart=started;
- utterance.onend=finish;
- utterance.onerror=fail;
- notice(`${profile.name} 목소리를 준비하고 있어요…`);
- speechStartTimer=setTimeout(fail,6000);
- // Start within the user's click where possible, including iOS speech playback.
- try{if(speechSynthesis.paused)speechSynthesis.resume();speechSynthesis.speak(utterance);}
- catch{fail();}
+   if(generation!==speechGeneration)return completion;
+   if(!response.ok){fail(response.status===429?'AI 음성 요청이 많아요. 잠시 후 다시 눌러주세요.':'공통 AI 음성을 준비하지 못했어요. 잠시 후 다시 눌러주세요.');return completion;}
+   if(!response.headers.get('content-type')?.startsWith('audio/')){fail();return completion;}
+   blob=await response.blob();if(generation!==speechGeneration)return completion;
+   if(!blob.size){fail();return completion;}cacheSpeech(key,blob);
+  }
+  if(generation!==speechGeneration)return completion;
+  speechAudioURL=URL.createObjectURL(blob);speechAudio=commonSpeechPlayer;speechAudio.src=speechAudioURL;
+  speechAudio.onended=finish;speechAudio.onerror=()=>fail();
+  await speechAudio.play();if(generation!==speechGeneration)return completion;
+  commonSpeechUnlocked=true;clearTimeout(speechStartTimer);speechActive=true;updateAmbience();notice();
+  speechEndTimer=setTimeout(()=>fail('음성 재생을 잠시 마쳤어요. 다시 듣기를 눌러주세요.'),180000);
+ }catch(error){if(generation===speechGeneration && error.name!=='AbortError')fail(error.name==='NotAllowedError'?'재생을 허용하려면 다시 듣기를 한 번 더 눌러주세요.':'AI 음성을 불러오지 못했어요. 연결을 확인하고 다시 눌러주세요.');}
  return completion;
 }
-function speakQuestion() {
- const profile=selectedSpeechProfile();
- if(cloudVoicesReady || matchingLocalVoice(profile))speak($('question-en').textContent);
-}
+function speakQuestion(){if(cloudVoicesReady)speak($('question-en').textContent);}
 function stopRecording() {
  stopReadingPractice();
  stopReadingFollow();
@@ -638,16 +638,30 @@ function updateRecordingUI() {
  const micActive=active || readingPractice;
  $('live-voice').hidden=!(readingPractice || active || recordPending || (mode==='friend' && conversationRunning));
  if(!active && !readingPractice)$('live-voice-label').textContent=recordPending?'마이크 연결 중…':speechActive?'친구가 이야기하고 있어요':'질문을 들은 뒤 이야기해 주세요';
- $('studio-record').hidden=mode!=='podcast';
- $('studio-record').disabled=recordPending || recordingFinalizing;
+ $('studio-record').hidden=mode!=='podcast' || hidden;
+ $('large-studio-record').disabled=recordPending || recordingFinalizing || savingTake;
+ $('large-studio-record').setAttribute('aria-pressed',String(active));
+ $('large-studio-record').setAttribute('aria-label',active?'녹음 마치기':'녹음 시작');
+ $('large-studio-record-label').textContent=recordPending?'마이크 연결 중…':recordingFinalizing?'녹음 마치는 중…':active?'눌러서 녹음 마치기':'마이크를 눌러 시작';
+ $('large-recording-orb').classList.toggle('is-recording',active);
+ $('large-recording-orb').classList.toggle('is-pending',recordPending);
+ $('listen-own').hidden=mode!=='podcast';
+ $('listen-own').disabled=recordPending || recordingFinalizing || (!latestPracticeTake && !active);
+ $('listen-own').setAttribute('aria-pressed',String(Boolean($('recording-result').querySelector('audio') && !$('recording-result').querySelector('audio').paused)));
+ $('save-take').hidden=mode!=='podcast' || !hidden;
+ $('save-take').disabled=recordPending || recordingFinalizing || savingTake || (!active && (!latestPracticeTake?.hidden || latestPracticeTake.saved));
+ $('save-take').setAttribute('aria-label',latestPracticeTake?.saved?'일기장에 저장됨':'대본과 녹음파일 저장');
+ $('listen-practice').hidden=mode==='podcast' && hidden;
+ if(mode==='podcast')$('podcast-save-note').textContent=latestPracticeTake?.saved?'일기장에 저장했어요.':hidden?'마음에 들면 💾로 저장하세요.':'말한 뒤 🗣️로 들어보세요.';
+ $('studio-record').disabled=recordPending || recordingFinalizing || savingTake;
  $('studio-record').setAttribute('aria-pressed',String(micActive));
- $('studio-record').setAttribute('aria-label',active?'녹음을 마치고 일기장에 저장':'녹음 시작');
+ $('studio-record').setAttribute('aria-label',active?'녹음 마치기':'녹음 시작');
  $('studio-record-label').textContent=recordingFinalizing?'녹음 마치는 중…':recordPending?'마이크 연결 중…':active?'녹음 중 · 눌러서 마치기':'마이크를 눌러 시작';
  $('record').hidden=mode==='podcast';
  $('practice-label').hidden=mode==='podcast';
  $('podcast-save-note').hidden=mode!=='podcast';
  $('practice-disclaimer').hidden=mode==='podcast';
- $('podcast-clock').hidden=mode!=='podcast' || !active;
+ $('podcast-clock').hidden=mode!=='podcast' || hidden || !active;
  $('podcast-mic-status').textContent=mode!=='podcast'?'':recordPending?'마이크 연결 중':recordingFinalizing?'녹음 저장 중':readingPractice?'듣고 있어요':active?'녹음 중':'';
  $('recording-feedback').hidden=mode!=='podcast' || !hidden || (!active && !recordPending);
  $('visible-clock').hidden=hidden;
@@ -668,10 +682,10 @@ function updateRecordingUI() {
  $('record').setAttribute('aria-pressed',String(running));
  $('record').setAttribute('aria-label',mode==='friend'?(running?'대화 일시정지':conversationPaused?'대화 이어하기':'대화 시작'):label);
  $('next-question').disabled=recordPending;
- $('restart').disabled=conversationRunning;
- $('toggle-script').disabled = false;
+ $('restart').disabled=conversationRunning || recordingFinalizing || savingTake;
+ $('toggle-script').disabled = recordingFinalizing || savingTake;
  ['listen-practice','hear-question'].forEach(id=>$(id).disabled=conversationRunning || readingPractice || active || recordPending);
- $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady && !matchingLocalVoice(selectedSpeechProfile()));
+ $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady || !selectedSpeechProfile());
  $('friend-voice').disabled=conversationRunning || !selectedSpeechProfile();document.querySelectorAll('button[data-person]').forEach(button=>button.disabled=conversationRunning);
  $('hidden-title').textContent = recordPending ? '마이크 사용을 허용해 주세요.' : active ? '지금, 당신의 이야기를 담고 있어요.' : audioURL ? '내 목소리로 이야기를 완성했어요.' : '당신의 이야기를 들려주세요.';
  updateOrbState();
@@ -693,10 +707,10 @@ function fillLines(container, lines) {
  container.replaceChildren();
  for (const [en,ko] of lines) { const div = document.createElement('div'); div.className='script-line'; const p=document.createElement('p'); p.textContent=en; const small=document.createElement('small'); small.textContent=ko; div.append(p,small); container.append(div); }
 }
-function resetAudio() { const old=$('recording-result').querySelector('audio'); if(old)old.pause(); playbackActive=false; if (audioURL) URL.revokeObjectURL(audioURL); audioURL=null; $('recording-result').replaceChildren(); $('recording-clock').textContent='00:00';$('visible-clock').textContent='00:00';$('podcast-clock').textContent='00:00'; updateAmbience(); }
+function resetAudio() { latestPracticeTake=null;const old=$('recording-result').querySelector('audio'); if(old)old.pause(); playbackActive=false; if (audioURL) URL.revokeObjectURL(audioURL); audioURL=null; $('recording-result').replaceChildren(); $('recording-clock').textContent='00:00';$('visible-clock').textContent='00:00';$('podcast-clock').textContent='00:00'; updateAmbience(); }
 function renderPractice() {
  const data=examples[selected];
- document.body.dataset.mode=mode;
+ document.body.dataset.mode=mode;document.body.dataset.podcastStage=hidden?'hidden':'visible';
  $('friend-question').hidden = mode !== 'friend';
  $('friend-person').hidden = mode !== 'friend';
  $('next-question').hidden = mode !== 'friend';
@@ -715,7 +729,7 @@ function renderPractice() {
  $('practice-script').hidden=hidden; $('hidden-script').hidden=!hidden;
  $('toggle-script').textContent=hidden?'대본 다시 보기':mode==='friend'?'대본 가리기':'가리며 말하기'; $('toggle-script').setAttribute('aria-pressed',String(hidden));
  $('practice-status').textContent=mode==='podcast'?'마이크를 눌러 녹음해 주세요.':conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
- updateRecordingUI();
+ updateRecordingUI();rememberPracticeText();
 }
 function syncLevels(){
  document.querySelectorAll('button[data-level]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.level)===chosenLevel)));
@@ -774,11 +788,11 @@ $('cancel-generation').onclick=()=>{cancelStoryGeneration();notice('작성을 �
 $('edit-story').onclick=()=>showStep(0);
 document.querySelectorAll('button[data-mode]').forEach(button=>button.onclick=()=>{ if(!selected || !examples[selected]){notice('먼저 내 이야기로 영어 대본을 만들어주세요.');return;} mode=button.dataset.mode; turn=0; hidden=false;conversationComplete=false; resetAudio(); showStep(2); renderPractice(); if(mode==='friend')chooseOrbForm(); });
 $('back-script').onclick=()=>showStep(1);
-$('toggle-script').onclick=()=>{hidden=!hidden;renderPractice();};
+$('toggle-script').onclick=async()=>{if(mode==='podcast'){await finishPracticeRecording();resetAudio();}hidden=!hidden;renderPractice();};
 $('hear-question').onclick=()=>{cancelConversationResponse();speak($('question-en').textContent);};
 $('listen-practice').onclick=()=>speak(mode==='friend'?(examples[selected].answerLines || examples[selected].lines)[examples[selected].turns[turn][2]][0]:examples[selected].lines.map(l=>l[0]).join(' '));
 $('next-question').onclick=skipConversationTurn;
-$('restart').onclick=()=>{ cancelRecordingSession(); stopSpeech(); resetAudio(); turn=0;conversationComplete=false;hidden=false;renderPractice(); notice('괜찮아요. 처음부터 천천히 다시 해봐요.'); };
+$('restart').onclick=()=>{takeGeneration++;cancelRecordingSession();stopSpeech();resetAudio();turn=0;conversationComplete=false;if(mode==='friend')hidden=false;renderPractice();notice();};
 async function startRecording({session=false}={}) {
  if(!session && mode!=='podcast')return false;
  const sessionEpoch=conversationEpoch;
@@ -810,27 +824,24 @@ async function startRecording({session=false}={}) {
   const takeStory=!session?examples[selected]?.story:null;
   const takeLines=!session?examples[selected]?.lines.map(line=>[...line]):null;
   const takeTitle=!session?examples[selected]?.title:null;const takeLevel=!session?examples[selected]?.level:null;
+  const takeId=crypto.randomUUID(),takeHidden=hidden,generation=!session?++takeGeneration:takeGeneration;
   localRecorder.onstop=()=>{
    recordingFinalizing=false;
    if(!session || !conversationRunning || localStream!==conversationStream)localStream.getTracks().forEach(t=>t.stop());
    updateRecordingUI();
-   if(!session && localChunks.length){
-    const takeBlob=new Blob(localChunks,{type:localRecorder.mimeType});
-    savePodcastTake(takeBlob,takeStarted,Math.max(0,(Date.now()-takeStarted)/1000),takeStory,takeLines,takeTitle,takeLevel);
-   }
-   if(epoch!==recordingEpoch)return;
+   if(epoch!==recordingEpoch || (!session && generation!==takeGeneration))return;
    if(!session)stopReadingFollow();
    stopMicMeter();
    clearInterval(recordTimer);clearTimeout(timeout);
    if(!localChunks.length){notice('녹음된 소리가 없어요. 마이크를 확인한 뒤 다시 시도해 주세요.');updateRecordingUI();updateAmbience();return;}
    const blob=new Blob(localChunks,{type:localRecorder.mimeType});
    const elapsed=Math.floor((Date.now()-recordingStarted)/1000);
-   resetAudio(); $('recording-clock').textContent=`${String(Math.floor(elapsed/60)).padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}`; audioURL=URL.createObjectURL(blob);
-   const audio=document.createElement('audio');audio.controls=true;audio.setAttribute('controlslist','nodownload noplaybackrate');audio.src=audioURL;
+   resetAudio();if(!session)latestPracticeTake={id:takeId,blob,createdAt:takeStarted,seconds:Math.max(0,(Date.now()-takeStarted)/1000),story:takeStory,lines:takeLines,title:takeTitle,level:takeLevel||1,hidden:takeHidden,saved:false}; $('recording-clock').textContent=`${String(Math.floor(elapsed/60)).padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}`; audioURL=URL.createObjectURL(blob);
+   const audio=ownVoicePlayer;audio.controls=true;audio.setAttribute('controlslist','nodownload noplaybackrate');audio.src=audioURL;
    const play=document.createElement('button');play.className='play-recording';play.textContent='▷ 내 목소리 들어보기';
    play.onclick=async()=>{try{if(conversationRunning)endConversation(null);cancelConversationResponse();stopSpeech();await audio.play();}catch{notice('재생 버튼을 다시 눌러주세요.');}};
-   audio.onplay=()=>{if(conversationRunning)endConversation(null);cancelConversationResponse();stopSpeech();playbackActive=true;play.textContent='내 이야기를 듣고 있어요';updateAmbience();};
-   const endPlayback=()=>{playbackActive=false;play.textContent='▷ 내 목소리 다시 듣기';updateAmbience();};
+   audio.onplay=()=>{if(conversationRunning)endConversation(null);cancelConversationResponse();stopSpeech();playbackActive=true;play.textContent='내 이야기를 듣고 있어요';updateRecordingUI();updateAmbience();};
+   const endPlayback=()=>{playbackActive=false;play.textContent='▷ 내 목소리 다시 듣기';updateRecordingUI();updateAmbience();};
    audio.onpause=endPlayback;audio.onended=endPlayback;
    const link=document.createElement('a');link.href=audioURL;link.download=`my-podguest-${Date.now()}.${blob.type.includes('mp4')?'m4a':'webm'}`;link.textContent='내 목소리 다운로드 ↓';
    $('recording-result').replaceChildren(play,audio,link);
@@ -857,26 +868,17 @@ async function startRecording({session=false}={}) {
 }
 $('record').onclick=()=>{if(mode==='friend'){if(conversationRunning)pauseConversation();else startConversation();}else $('studio-record').click();};
 function loadVoices() {
- const current=$('friend-voice').value;
- const profiles=speechProfiles();
- document.querySelector('.person-options').hidden=!cloudVoicesReady;
- $('friend-voice').replaceChildren();
- profiles.forEach(profile=>{
-  const available=cloudVoicesReady || Boolean(matchingLocalVoice(profile));
-  if(!available)return;
-  const option=new Option(profile.name,profile.id);
-  option.dataset.available=String(available);$('friend-voice').append(option);
- });
- const options=[...$('friend-voice').options];
- const chosen=options.find(o=>o.value===current && o.dataset.available==='true')||options.find(o=>o.dataset.available==='true')||options[0];
- $('friend-voice').value=chosen?.value||'';
- $('friend-voice').disabled=conversationRunning || !chosen;
- $('preview-voice').disabled=conversationRunning || chosen?.dataset.available!=='true';
- $('voice-help').textContent=!chosen?'지금 재생할 수 있는 영어 목소리가 없어요. 기기에 영어 음성을 설치하거나 다른 브라우저에서 열어주세요.':cloudVoicesReady?`목소리 ${profiles.length}개 중 골라주세요.`:profiles.length?'이 기기의 영어 음성으로 읽어드려요. 목소리 들어보기로 먼저 확인해 주세요. 성별과 종류는 기기마다 달라요.':'이 브라우저는 음성 재생을 지원하지 않아요. Safari 또는 Chrome에서 열어주세요.';
+ const current=$('friend-voice').value,profiles=speechProfiles();
+ document.querySelector('.person-options').hidden=false;
+ $('friend-voice').replaceChildren(...profiles.map(profile=>{const option=new Option(profile.name,profile.id);option.dataset.available=String(cloudVoicesReady);return option;}));
+ $('friend-voice').value=profiles.some(profile=>profile.id===current)?current:profiles[0]?.id||'';
+ $('friend-voice').disabled=conversationRunning;
+ $('preview-voice').disabled=conversationRunning || !cloudVoicesReady;
+ $('voice-help').textContent=cloudVoicesReady?'AI가 만든 목소리예요. 모든 기기에서 같은 목소리로 들려드려요.':'공통 AI 음성을 연결하지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.';
 }
-loadVoices();if('speechSynthesis' in window)speechSynthesis.addEventListener('voiceschanged',loadVoices);
-if(location.protocol==='http:' || location.protocol==='https:') {
- fetch('/api/voice-status').then(r=>r.ok?r.json():null).then(status=>{cloudVoicesReady=status?.configured===true;loadVoices();}).catch(()=>{});
+loadVoices();
+if(location.protocol==='http:' || location.protocol==='https:'){
+ fetch('/api/voice-status').then(response=>response.ok?response.json():null).then(status=>{cloudVoicesReady=status?.configured===true;loadVoices();}).catch(()=>{cloudVoicesReady=false;loadVoices();});
 }
 $('friend-voice').onchange=()=>{cancelConversationResponse();stopSpeech();loadVoices();};
 $('preview-voice').onclick=()=>{loadVoices();cancelConversationResponse();stopSpeech();speak('How was your day?');};
@@ -940,7 +942,7 @@ $('cafe-music').onerror=()=>{musicVersion++;musicRequested=false;soundEnabled=fa
 document.addEventListener('visibilitychange',()=>{if(document.hidden && readingPractice){stopReadingPractice();stopMicMeter();updateRecordingUI();updateAmbience();}if(document.hidden && conversationRunning)endConversation('화면을 떠나 대화를 멈췄어요. 시작을 눌러 이어가세요.');});
 window.addEventListener('beforeunload',()=>{cancelStoryGeneration();$('cafe-music').pause();cancelRecordingSession();stopSpeech();recognition?.stop();if(audioURL)URL.revokeObjectURL(audioURL);audioContext?.close();});
 
-$('studio-record').onclick=()=>{if(recorder?.state==='recording')stopRecording();else startRecording();};
+$('studio-record').onclick=$('large-studio-record').onclick=()=>{if(recorder?.state==='recording')stopRecording();else{unlockOwnVoicePlayback();startRecording();}};
 const diaryStore=new PodcastDiaryStore();
 const unsavedTakes=new Map();
 let diaryURLs=[],diaryReturn=0,diaryVersion=0;
@@ -948,12 +950,33 @@ function pauseDiary(){
  $('diary-list').querySelectorAll('audio').forEach(audio=>audio.pause());
  diaryURLs.forEach(url=>URL.revokeObjectURL(url));diaryURLs=[];
 }
-async function savePodcastTake(blob,createdAt,seconds,story,lines,title,level){
- const entry={id:crypto.randomUUID(),createdAt,seconds,story,lines,blob,level:level||1,title:title||`${new Date(createdAt).toLocaleDateString('ko-KR')} 나의 이야기`};
- try{await diaryStore.put(entry);notice('일기장에 저장했어요.');}
- catch{unsavedTakes.set(entry.id,entry);notice('브라우저에 저장하지 못했어요. 일기장에서 녹음을 내려받아 주세요. 이 창을 닫으면 미저장 녹음은 사라져요.');}
- if(document.body.dataset.screen==='diary')renderDiary();
+async function finishPracticeRecording(){
+ const current=recorder;
+ if(current?.state==='recording'){
+  const ended=new Promise(resolve=>current.addEventListener('stop',resolve,{once:true}));
+  stopRecording();await ended;
+ }
 }
+$('listen-own').onclick=async()=>{
+ await finishPracticeRecording();
+ const audio=$('recording-result').querySelector('audio');
+ if(!audio){notice('먼저 마이크로 이야기해 주세요.');return;}
+ if(!audio.paused){audio.pause();return;}
+ try{stopSpeech();audio.currentTime=0;await audio.play();}catch{notice('🗣️를 다시 눌러주세요.');}
+};
+$('save-take').onclick=async()=>{
+ if(savingTake || mode!=='podcast' || !hidden)return;
+ savingTake=true;updateRecordingUI();
+ try{
+  await finishPracticeRecording();const take=latestPracticeTake;
+  if(!take?.hidden || take.saved)return;
+  const {hidden:stage,saved,...entry}=take;
+  entry.title=entry.title||`${new Date(entry.createdAt).toLocaleDateString('ko-KR')} 나의 이야기`;
+  await diaryStore.put(entry);take.saved=true;
+  notice('대본과 녹음을 한 세트로 저장했어요.');
+ }catch{notice('저장하지 못했어요. 💾를 다시 눌러주세요.');}
+ finally{savingTake=false;updateRecordingUI();}
+};
 document.querySelectorAll('.diary-open').forEach(button=>button.onclick=()=>{
  diaryReturn=['input','choice','practice'].indexOf(document.body.dataset.screen);
  showStep(3);renderDiary();
@@ -1006,7 +1029,7 @@ async function renderDiary(){
       // An unsaved recording can still be removed when browser storage is unavailable.
       try{await diaryStore.put(preserved);unsavedTakes.delete(entry.id);}catch{unsavedTakes.set(entry.id,preserved);}
      }else await diaryStore.removeAudio(entry.id);
-     audio.pause();audio.removeAttribute('src');audio.load();URL.revokeObjectURL(url);resetAudio();
+     audio.pause();audio.removeAttribute('src');audio.load();URL.revokeObjectURL(url);if(latestPracticeTake?.id===entry.id)resetAudio();
      notice('녹음파일을 삭제했어요. 이야기와 대본은 그대로 남아 있어요.');
      await renderDiary();
     }catch{state.textContent='녹음파일을 삭제하지 못했어요. 다시 눌러주세요.';}
@@ -1055,21 +1078,20 @@ function storyStorageFailure(){
  $('story-save-status').textContent='이 브라우저에 저장하지 못했어요. 페이지를 닫기 전에 이야기를 복사해 주세요.';
 }
 function writeStories(){
- try{localStorage.setItem(storyStorageKey,JSON.stringify(storedStories));$('story-save-status').textContent='이야기를 이 브라우저에 자동 저장했어요.';return true;}
+ try{localStorage.setItem(storyStorageKey,JSON.stringify(storedStories));$('story-save-status').textContent='작성 중인 내용은 다음에 이어볼 수 있어요.';return true;}
  catch{storyStorageFailure();return false;}
 }
 function saveStoryDraft(){
  if(!window.storyStorageReady)return;
- storedStories.draft=$('story').value;writeStories();
+ storedStories.draft=$('story').value;storedStories.draftUpdatedAt=Date.now();writeStories();
 }
 function saveGeneratedStory(){
  const saved={source:personalStory.source,result:personalStory.result,level:chosenLevel,updatedAt:Date.now()};
- storedStories.stories=[saved,...storedStories.stories.filter(item=>item.source!==saved.source)];
- writeStories();renderSavedStories();
+ storedStories.current=saved;writeStories();
 }
 function renderSavedStories(){
  const list=$('saved-story-list');list.replaceChildren();
- if(!storedStories.stories.length){const p=document.createElement('p');p.textContent='대본을 만들면 여기에 모여요.';list.append(p);}
+ if(!storedStories.stories.length){const p=document.createElement('p');p.textContent='이전에 보관한 대본이 없어요. 마음에 드는 녹음은 💾로 일기장에 남겨보세요.';list.append(p);}
  for(const entry of storedStories.stories){
   const row=document.createElement('div');row.className='saved-story-row';
   const open=document.createElement('button');open.type='button';open.className='saved-story-open';
@@ -1085,11 +1107,36 @@ function renderSavedStories(){
 try{
  const saved=JSON.parse(localStorage.getItem(storyStorageKey)||'null');
  if(saved && typeof saved.draft==='string' && Array.isArray(saved.stories)){
-  storedStories.draft=saved.draft.slice(0,2000);
+  storedStories.draft=saved.draft.slice(0,2000);storedStories.draftUpdatedAt=Number(saved.draftUpdatedAt)||0;
   for(const entry of saved.stories){try{if(typeof entry.source!=='string' || entry.source.length>2000)continue;storedStories.stories.push({...entry,result:normalizeStoryResult(entry.result)});}catch{}}
+  if(saved.current){try{storedStories.current={...saved.current,result:normalizeStoryResult(saved.current.result)};personalStory={source:storedStories.current.source,result:storedStories.current.result};}catch{}}
   $('story').value=storedStories.draft;
   if(storedStories.draft){$('count').textContent=storedStories.draft.length.toLocaleString()+' / 2,000';showWriting();$('story-save-status').textContent='지난번 작성하던 이야기를 불러왔어요.';}
  }
 }catch{storyStorageFailure();}
 renderSavedStories();
+
+// Restore text/stage only. Practice audio stays in memory until the explicit save action.
+const practiceTextKey='podguest-current-practice-v1';
+let lastPracticeText=null;
+function rememberPracticeText(){
+ if(!selected || !examples[selected] || mode!=='podcast')return;
+ const data=examples[selected];
+ const state={data,hidden,level:chosenLevel,personalStory,exampleKey:activeExampleKey,updatedAt:Date.now()};
+ try{localStorage.setItem(practiceTextKey,JSON.stringify(state));lastPracticeText=state;$('resume-practice').hidden=false;}
+ catch{notice('대본을 다시 불러올 수 있도록 보관하지 못했어요. 창을 닫기 전에 복사해 주세요.');}
+}
+function restorePracticeText(state){
+ if(!state || !state.data || typeof state.data.story!=='string' || !Array.isArray(state.data.lines) || !state.data.lines.length || !Array.isArray(state.data.turns) || !state.data.turns.length)return false;
+ const validLine=line=>Array.isArray(line) && typeof line[0]==='string' && typeof line[1]==='string';
+ if(!state.data.lines.every(validLine) || !state.data.turns.every(validLine))return false;
+ selected='resumed-practice';examples[selected]=state.data;mode='podcast';turn=0;conversationComplete=false;hidden=Boolean(state.hidden);chosenLevel=[1,2,3].includes(state.level)?state.level:1;
+ personalStory=state.personalStory||null;activeExampleKey=state.exampleKey||null;
+ $('story').value=state.data.story;count();syncLevels();$('story-summary').textContent=state.data.story;$('story-kind').textContent='내 이야기 · '+chosenLevel+'단계';resetAudio();showStep(2);renderPractice();return true;
+}
+$('resume-practice').onclick=()=>restorePracticeText(lastPracticeText);
+try{
+ const remembered=JSON.parse(localStorage.getItem(practiceTextKey)||'null');
+ if(remembered){lastPracticeText=remembered;$('resume-practice').hidden=false;if(remembered.updatedAt>=Number(storedStories.draftUpdatedAt||0))restorePracticeText(remembered);}
+}catch{notice('지난 연습을 불러오지 못했어요. 저장한 일기장은 그대로 있어요.');}
 </script></body></html>

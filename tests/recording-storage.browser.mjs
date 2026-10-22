@@ -35,13 +35,15 @@ try {
  await page.click('#make-script');
  await page.waitForSelector('#script-panel:not([hidden])');
  await page.reload({waitUntil:'domcontentloaded'});
- await page.locator('.saved-stories summary').click();
- await page.locator('.saved-story-open').click();
+ await page.click('#make-script');
  assert.equal(requests,1,'restored script must not call AI again');
  await page.click('button[data-mode="podcast"]');
- await page.click('#toggle-script');await page.click('#studio-record');
+ await page.click('#toggle-script');await page.click('#large-studio-record');
  await page.waitForFunction(()=>recorder?.state==='recording');
- await page.waitForTimeout(3500);await page.click('#studio-record');
+ await page.waitForTimeout(3500);await page.click('#large-studio-record');
+ await page.waitForFunction(()=>latestPracticeTake && !recordingFinalizing);
+ assert.equal((await page.evaluate(()=>diaryStore.list())).length,0);
+ await page.click('#save-take');
  await page.waitForFunction(async()=>(await diaryStore.list()).length===1);
  const recording=await page.evaluate(async()=>{
   const take=(await diaryStore.list())[0],context=new AudioContext();
@@ -62,14 +64,10 @@ try {
  assert.equal(recording.silentWindows,0,'joined recording must retain continuous source audio');
  assert.equal(recording.finalTrackState,'live','final chunk must arrive before microphone release');
  assert.equal(recording.released,true);
- await page.click('#back-script');await page.click('#edit-story');
- await page.locator('.saved-stories details').evaluate(element=>{element.open=true;});
- await page.locator('.saved-story-row .text-button').click();
- await page.reload({waitUntil:'domcontentloaded'});
- assert.equal(await page.locator('.saved-story-row').count(),0,'deletion survives refresh');
+ await page.click('#home');await page.click('#write-tab');
  await page.evaluate(()=>{Storage.prototype.setItem=()=>{throw new Error('quota');};});
  await page.fill('#story','저장 공간이 부족해도 작성한 글은 남겨두기');
  assert.ok((await page.locator('#story-save-status').textContent()).includes('저장하지 못했어요'));
  assert.deepEqual(errors,[]);
- console.log('PASS draft/script persistence, no repeat API call, continuous recording/final chunk, deletion, storage errors',recording);
+ console.log('PASS draft/script persistence, no repeat API call, continuous recording/final chunk, explicit save, storage errors',recording);
 }finally{await browser.close();}

@@ -60,3 +60,18 @@ body[data-mode=podcast] #practice-status,body[data-mode=podcast] #live-voice,bod
 
 body[data-screen=practice] main{overflow:clip}
 body[data-mode=podcast] #recording-result{display:none}
+/* Two podcast stages: small reading mic, original studio recording mic. */
+body[data-mode=podcast][data-podcast-stage=hidden] #hidden-script .mic-level{display:block}
+body[data-mode=podcast][data-podcast-stage=hidden] #hidden-script #recording-clock{display:block;font-size:23px;margin:8px 0}
+body[data-mode=podcast][data-podcast-stage=hidden] #hidden-help{display:none}
+body[data-mode=podcast][data-podcast-stage=hidden] #hidden-title{font-size:12px;line-height:1.5;margin:10px 0}
+body[data-mode=podcast][data-podcast-stage=hidden] .practice-controls{margin-top:8px}
+body[data-mode=podcast][data-podcast-stage=hidden] .practice-top .diary-open{margin-left:auto!important}
+#large-studio-record{margin:14px auto 4px;gap:12px}
+#large-studio-record .recording-orb{width:130px;height:170px;margin-bottom:24px}
+#large-studio-record .icon{width:50px;height:50px}
+#large-studio-record-label{font-size:12px}
+#listen-own[aria-pressed=true]{background:#e1e9d6;border-color:#82986c}
+#save-take:disabled{opacity:.38}
+.resume-practice{border:1px solid #dce3cf;background:#faf8ef;color:#61774d;border-radius:12px;padding:12px 16px;min-height:44px;font-size:12px;margin:14px 0 0;max-width:100%}
+@media(prefers-reduced-motion:reduce){.practice-top .podcast-mic-control .recording-orb{transform:none}}

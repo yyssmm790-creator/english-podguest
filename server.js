@@ -2,7 +2,7 @@ import http from 'node:http';
 import {handleStoryRequest} from './lib/story-service.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { VOICE_CATALOG } from './public/voices.js';
+import {handleSpeechRequest,speechConfigured} from './lib/speech-service.js';
 const root = path.resolve('public');
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mp3': 'audio/mpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
 http.createServer(async (req, res) => {
@@ -16,27 +16,12 @@ http.createServer(async (req, res) => {
     const result=await handleStoryRequest({method:req.method,headers:req.headers,body,clientIP:req.socket.remoteAddress});
     res.writeHead(result.status,result.headers);return res.end(result.body);
   }
-  const region = process.env.SPEECH_REGION || '';
-  const configured = Boolean(process.env.SPEECH_KEY && /^[a-z0-9]+$/.test(region));
-  if (pathname === '/api/voice-status' && req.method === 'GET') return json(200, {configured});
-  if (pathname === '/api/speech') {
-    if (req.method !== 'POST') return json(405,{error:'method_not_allowed'});
-    if (req.headers['sec-fetch-site'] === 'cross-site' || (req.headers.origin && req.headers.origin !== `http://${req.headers.host}` && req.headers.origin !== `https://${req.headers.host}`)) return json(403,{error:'origin_not_allowed'});
-    if (!configured) return json(503,{error:'speech_not_configured'});
-    if (!req.headers['content-type']?.startsWith('application/json')) return json(415,{error:'json_required'});
+  if(pathname==='/api/voice-status' && req.method==='GET')return json(200,{configured:speechConfigured(),provider:'openai'});
+  if(pathname==='/api/speech'){
     let body='';
-    try { for await (const chunk of req) { body += chunk; if (Buffer.byteLength(body)>16000) return json(413,{error:'too_large'}); } }
-    catch { return json(400,{error:'invalid_body'}); }
-    let data; try { data=JSON.parse(body); } catch {return json(400,{error:'invalid_json'});}
-    if (!data || typeof data !== 'object' || typeof data.text !== 'string' || !data.text.trim() || data.text.length>3000 || !VOICE_CATALOG.some(v=>v.id===data.voice)) return json(400,{error:'invalid_speech_request'});
-    const escape = text=>text.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
-    try {
-      const response=await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`,{method:'POST',signal:AbortSignal.timeout(20000),headers:{'Ocp-Apim-Subscription-Key':process.env.SPEECH_KEY,'Content-Type':'application/ssml+xml','X-Microsoft-OutputFormat':'audio-24khz-48kbitrate-mono-mp3','User-Agent':'Podguest'},body:`<speak version="1.0" xml:lang="en-US"><voice name="${data.voice}"><prosody rate="-15%">${escape(data.text)}</prosody></voice></speak>`});
-      if (!response.ok) return json(502,{error:'speech_provider_failed'});
-      if (!response.headers.get('content-type')?.startsWith('audio/')) return json(502,{error:'invalid_provider_audio'});
-      const audio=Buffer.from(await response.arrayBuffer());
-      res.writeHead(200,{'Content-Type':'audio/mpeg','Cache-Control':'no-store'});return res.end(audio);
-    }catch{return json(502,{error:'speech_provider_unavailable'});}
+    try{for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>16000)return json(413,{error:'too_large'});}}catch{return json(400,{error:'invalid_body'});}
+    const result=await handleSpeechRequest({method:req.method,headers:req.headers,body,clientIP:req.socket.remoteAddress});
+    res.writeHead(result.status,result.headers);return res.end(result.body);
   }
   const file = path.resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/')) { res.writeHead(403); return res.end(); }
