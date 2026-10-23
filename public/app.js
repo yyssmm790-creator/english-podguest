@@ -297,7 +297,6 @@ function updateRecordingUI() {
  $('record').hidden=mode==='podcast';
  $('practice-label').hidden=mode==='podcast';
  $('podcast-save-note').hidden=mode!=='podcast';
- $('practice-disclaimer').hidden=mode==='podcast';
  $('podcast-clock').hidden=mode!=='podcast' || hidden || !active;
  $('podcast-mic-status').textContent=mode!=='podcast'?'':recordPending?'마이크 연결 중':recordingFinalizing?'녹음 저장 중':readingPractice?'듣고 있어요':active?'녹음 중':'';
  $('recording-feedback').hidden=mode!=='podcast' || !hidden || (!active && !recordPending);
@@ -358,7 +357,6 @@ function renderPractice() {
  const span=document.createElement('span'); span.textContent=mode==='friend'?'이야기해 볼까요?':'당신이에요.'; $('practice-title').append(span);
  $('practice-intro').textContent=mode==='friend'?'내 이야기를 아는 친구와, 한 문장씩 천천히.':'천천히, 내 속도로. 몇 번을 다시 해도 괜찮아요.';
  $('paper-label').textContent=mode==='friend'?'이렇게 답해볼까요?':'내 이야기';
- $('practice-disclaimer').textContent=mode==='friend'?(data.isExample?'예시 이야기로 대화 연습을 해요.':'내 이야기로 만든 질문과 예시 답변이에요. 말소리가 끝나면 다음 질문으로 이어져요.'):'대본과 녹음은 일기장에 자동 저장돼요.';
  const question=conversationComplete?(examples[selected].ending || conversationEndings[selected]):data.turns[turn];
  $('question-en').textContent=question[0]; $('question-ko').textContent=question[1];
  fillLines($('practice-script'),mode==='friend'?[(data.answerLines || data.lines)[data.turns[turn][2]]]:data.lines);
@@ -480,8 +478,7 @@ async function startRecording({session=false}={}) {
    audio.onplay=()=>{if(conversationRunning)endConversation(null);cancelConversationResponse();stopSpeech();playbackActive=true;play.textContent='내 이야기를 듣고 있어요';updateRecordingUI();updateAmbience();};
    const endPlayback=()=>{playbackActive=false;play.textContent='▷ 내 목소리 다시 듣기';updateRecordingUI();updateAmbience();};
    audio.onpause=endPlayback;audio.onended=endPlayback;
-   const link=document.createElement('a');link.href=audioURL;link.download=`my-podguest-${Date.now()}.${blob.type.includes('mp4')?'m4a':'webm'}`;link.textContent='내 목소리 다운로드 ↓';
-   $('recording-result').replaceChildren(play,audio,link);
+   $('recording-result').replaceChildren(play,audio);
    $('practice-status').textContent=session && !conversationRunning?conversationPaused?'대화를 잠시 멈췄어요. 이어하기를 눌러 계속 말해 주세요.':'대화를 멈췄어요. 내 답변을 듣거나 시작을 눌러 이어가세요.':'내 이야기를 영어로 말했어요. 내 목소리를 들어볼까요?';
    updateRecordingUI();updateAmbience();
    if(session && conversationRunning && sessionEpoch===conversationEpoch && turnDetector.hasSpeech)queueConversationResponse();
