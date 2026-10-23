@@ -128,17 +128,17 @@ function queueConversationResponse(){
 function finishSpeech(success) {
  const resolve=speechCompletion;speechCompletion=null;if(resolve)resolve(success);
 }
-function endConversation(message='대화를 멈췄어요. 시작을 누르면 이어갈 수 있어요.') {
+function endConversation(message='') {
  conversationPaused=false;conversationRunning=false;recordPending=false;conversationEpoch++;sessionQuestionVersion++;updateRecordingUI();
  clearTimeout(sessionListenTimer);clearTimeout(sessionLimitTimer);sessionListenTimer=null;sessionLimitTimer=null;
  cancelConversationResponse();stopSpeech();stopRecording();
  if(!recordingFinalizing)conversationStream?.getTracks().forEach(track=>track.stop());conversationStream=null;
  recordPending=false;updateRecordingUI();updateAmbience();
- if(message)$('practice-status').textContent=message;
+ $('practice-status').textContent=message||'';
 }
 function pauseConversation(){
  const stage=conversationStage;
- endConversation('대화를 잠시 멈췄어요. 이어하기를 누르면 하던 대화로 돌아가요.');
+ endConversation();
  pausedConversationStage=stage;conversationPaused=true;updateRecordingUI();
 }
 async function startConversation() {
@@ -356,14 +356,14 @@ function renderPractice() {
  $('practice-title').append(document.createElement('br'));
  const span=document.createElement('span'); span.textContent=mode==='friend'?'이야기해 볼까요?':'당신이에요.'; $('practice-title').append(span);
  $('practice-intro').textContent=mode==='friend'?'내 이야기를 아는 친구와, 한 문장씩 천천히.':'천천히, 내 속도로. 몇 번을 다시 해도 괜찮아요.';
- $('paper-label').textContent=mode==='friend'?'이렇게 답해볼까요?':'내 이야기';
+ $('paper-label').hidden=mode==='friend';$('paper-label').textContent=mode==='friend'?'':'내 이야기';
  const question=conversationComplete?(examples[selected].ending || conversationEndings[selected]):data.turns[turn];
  $('question-en').textContent=question[0]; $('question-ko').textContent=question[1];
  fillLines($('practice-script'),mode==='friend'?[(data.answerLines || data.lines)[data.turns[turn][2]]]:data.lines);
  $('next-question').textContent=conversationComplete || turn===data.turns.length-1?'다시 대화하기 ↺':'다음 질문 →';
  $('practice-script').hidden=hidden; $('hidden-script').hidden=!hidden;
  $('toggle-script').textContent=hidden?'대본 다시 보기':mode==='friend'?'대본 가리기':'가리며 말하기'; $('toggle-script').setAttribute('aria-pressed',String(hidden));
- $('practice-status').textContent=mode==='podcast'?'마이크를 눌러 녹음해 주세요.':conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
+ $('practice-status').textContent=mode==='podcast'?'마이크를 눌러 녹음해 주세요.':conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
  updateRecordingUI();rememberPracticeText();
 }
 function syncLevels(){
@@ -479,7 +479,7 @@ async function startRecording({session=false}={}) {
    const endPlayback=()=>{playbackActive=false;play.textContent='▷ 내 목소리 다시 듣기';updateRecordingUI();updateAmbience();};
    audio.onpause=endPlayback;audio.onended=endPlayback;
    $('recording-result').replaceChildren(play,audio);
-   $('practice-status').textContent=session && !conversationRunning?conversationPaused?'대화를 잠시 멈췄어요. 이어하기를 눌러 계속 말해 주세요.':'대화를 멈췄어요. 내 답변을 듣거나 시작을 눌러 이어가세요.':'내 이야기를 영어로 말했어요. 내 목소리를 들어볼까요?';
+   if(!session)$('practice-status').textContent='내 이야기를 영어로 말했어요. 내 목소리를 들어볼까요?';
    updateRecordingUI();updateAmbience();
    if(session && conversationRunning && sessionEpoch===conversationEpoch && turnDetector.hasSpeech)queueConversationResponse();
   };

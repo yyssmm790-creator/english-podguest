@@ -183,10 +183,14 @@ body[data-mode=podcast][data-podcast-stage=hidden] .practice-top .diary-open{mar
 
 .header-actions{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}.header-actions .sound-button{margin-left:0}.share-button{display:flex;align-items:center;justify-content:center;gap:7px;min-width:44px;min-height:44px;padding:9px 13px;border:1px solid var(--line);border-radius:24px;background:none;color:#667b53;font-size:11px}.share-button .icon{width:20px;height:20px}.share-dialog{width:min(420px,calc(100vw - 32px));border:1px solid #dbe2ce;border-radius:18px;padding:20px;background:#faf8f0;color:#3f4e36;box-shadow:0 14px 45px #1e2c2440}.share-dialog::backdrop{background:#20301f66}.share-dialog-top{display:flex;align-items:center;justify-content:space-between;gap:12px}.share-dialog h2{font-size:18px;font-weight:500;margin:0}.share-dialog-top button{width:44px;height:44px;border:0;background:none;color:#758469;font-size:26px}.share-dialog label{display:block;font-size:12px;margin:10px 0}.share-dialog input{width:100%;min-height:44px;border:1px solid #d8e0cc;border-radius:8px;background:#fffdf6;color:#506543;font:inherit;font-size:14px;padding:10px;box-sizing:border-box}.share-dialog .primary{margin-top:14px}.share-dialog p{font-size:12px;line-height:1.6;color:#7c8b6c;margin-bottom:0}
 @media(max-width:760px){.header-actions{gap:6px}.share-button{width:44px;padding:0}.share-button>span{display:none}.header-actions .sound-label{display:none}.header-actions .sound-button{min-width:44px;min-height:44px;padding:8px;gap:4px}.share-dialog input{font-size:16px}}
+
+body[data-screen=practice][data-mode=friend] footer{display:none}
+.paper-heading #toggle-script{margin-left:auto}
+#practice-status:empty{display:none}
 </style></head>
 <body data-screen="input" data-mode="podcast">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="icon-sound" viewBox="0 0 24 24"><path d="M11 5L5 9H2v6h3l6 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol><symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-3 2 2-6a9 9 0 1 1 18-5Z"/><path d="M7 10h10M7 14h6"/></symbol><symbol id="icon-share" viewBox="0 0 24 24"><path d="M12 16V3M7 8l5-5 5 5M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/></symbol><symbol id="icon-pen" viewBox="0 0 24 24"><path d="m15 3 6 6M3 21l2-7L17 2l5 5L10 19z"/></symbol></defs></svg>
-<header><a class="brand" href="#" id="home" aria-label="나는 영어 팟게스트 홈"><span class="brand-en">I'm an English Podguest<span class="brand-dot">.</span></span><span class="brand-ko">나는 영어 팟게스트</span></a><div class="header-actions"><button id="sound" class="sound-button" aria-pressed="false" aria-label="카페 음악 연속 듣기 켜기"><svg class="icon"><use href="#icon-sound"/></svg><span class="sound-label"><span>카페 음악</span> <span>연속 듣기</span></span><span id="sound-state">OFF</span></button><button id="share-site" class="share-button" type="button" aria-label="사이트 공유하기" title="사이트 공유하기"><svg class="icon" aria-hidden="true"><use href="#icon-share"/></svg><span>공유</span></button></div></header>
+<header><a class="brand" href="#" id="home" aria-label="나는 영어 팟게스트 홈"><span class="brand-en">I'm an English Podguest<span class="brand-dot">.</span></span></a><div class="header-actions"><button id="sound" class="sound-button" aria-pressed="false" aria-label="카페 음악 연속 듣기 켜기"><svg class="icon"><use href="#icon-sound"/></svg><span class="sound-label"><span>카페 음악</span> <span>연속 듣기</span></span><span id="sound-state">OFF</span></button><button id="share-site" class="share-button" type="button" aria-label="사이트 공유하기" title="사이트 공유하기"><svg class="icon" aria-hidden="true"><use href="#icon-share"/></svg><span>공유</span></button></div></header>
 <dialog id="share-dialog" class="share-dialog" aria-labelledby="share-title"><div class="share-dialog-top"><h2 id="share-title">사이트 공유</h2><button id="close-share" type="button" aria-label="공유창 닫기">×</button></div><label for="share-link">공유할 링크</label><input id="share-link" readonly type="url"><button id="copy-share-link" class="primary" type="button">링크 복사</button><p id="share-status" role="status"></p></dialog>
 <audio id="cafe-music" loop preload="none" src="./audio/cafe-acoustic-01.mp3"></audio><span id="music-now" class="music-now" role="status" hidden></span>
 <main>
@@ -495,17 +499,17 @@ function queueConversationResponse(){
 function finishSpeech(success) {
  const resolve=speechCompletion;speechCompletion=null;if(resolve)resolve(success);
 }
-function endConversation(message='대화를 멈췄어요. 시작을 누르면 이어갈 수 있어요.') {
+function endConversation(message='') {
  conversationPaused=false;conversationRunning=false;recordPending=false;conversationEpoch++;sessionQuestionVersion++;updateRecordingUI();
  clearTimeout(sessionListenTimer);clearTimeout(sessionLimitTimer);sessionListenTimer=null;sessionLimitTimer=null;
  cancelConversationResponse();stopSpeech();stopRecording();
  if(!recordingFinalizing)conversationStream?.getTracks().forEach(track=>track.stop());conversationStream=null;
  recordPending=false;updateRecordingUI();updateAmbience();
- if(message)$('practice-status').textContent=message;
+ $('practice-status').textContent=message||'';
 }
 function pauseConversation(){
  const stage=conversationStage;
- endConversation('대화를 잠시 멈췄어요. 이어하기를 누르면 하던 대화로 돌아가요.');
+ endConversation();
  pausedConversationStage=stage;conversationPaused=true;updateRecordingUI();
 }
 async function startConversation() {
@@ -723,14 +727,14 @@ function renderPractice() {
  $('practice-title').append(document.createElement('br'));
  const span=document.createElement('span'); span.textContent=mode==='friend'?'이야기해 볼까요?':'당신이에요.'; $('practice-title').append(span);
  $('practice-intro').textContent=mode==='friend'?'내 이야기를 아는 친구와, 한 문장씩 천천히.':'천천히, 내 속도로. 몇 번을 다시 해도 괜찮아요.';
- $('paper-label').textContent=mode==='friend'?'이렇게 답해볼까요?':'내 이야기';
+ $('paper-label').hidden=mode==='friend';$('paper-label').textContent=mode==='friend'?'':'내 이야기';
  const question=conversationComplete?(examples[selected].ending || conversationEndings[selected]):data.turns[turn];
  $('question-en').textContent=question[0]; $('question-ko').textContent=question[1];
  fillLines($('practice-script'),mode==='friend'?[(data.answerLines || data.lines)[data.turns[turn][2]]]:data.lines);
  $('next-question').textContent=conversationComplete || turn===data.turns.length-1?'다시 대화하기 ↺':'다음 질문 →';
  $('practice-script').hidden=hidden; $('hidden-script').hidden=!hidden;
  $('toggle-script').textContent=hidden?'대본 다시 보기':mode==='friend'?'대본 가리기':'가리며 말하기'; $('toggle-script').setAttribute('aria-pressed',String(hidden));
- $('practice-status').textContent=mode==='podcast'?'마이크를 눌러 녹음해 주세요.':conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'일시정지했어요. 이어하기를 누르면 하던 대화로 돌아가요.':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
+ $('practice-status').textContent=mode==='podcast'?'마이크를 눌러 녹음해 주세요.':conversationRunning?'말을 마친 뒤 잠깐 기다리면 다음 질문으로 이어져요.':conversationPaused?'':'시작을 누르고 이야기해 주세요. 다 말하면 다음 질문으로 이어져요.';
  updateRecordingUI();rememberPracticeText();
 }
 function syncLevels(){
@@ -846,7 +850,7 @@ async function startRecording({session=false}={}) {
    const endPlayback=()=>{playbackActive=false;play.textContent='▷ 내 목소리 다시 듣기';updateRecordingUI();updateAmbience();};
    audio.onpause=endPlayback;audio.onended=endPlayback;
    $('recording-result').replaceChildren(play,audio);
-   $('practice-status').textContent=session && !conversationRunning?conversationPaused?'대화를 잠시 멈췄어요. 이어하기를 눌러 계속 말해 주세요.':'대화를 멈췄어요. 내 답변을 듣거나 시작을 눌러 이어가세요.':'내 이야기를 영어로 말했어요. 내 목소리를 들어볼까요?';
+   if(!session)$('practice-status').textContent='내 이야기를 영어로 말했어요. 내 목소리를 들어볼까요?';
    updateRecordingUI();updateAmbience();
    if(session && conversationRunning && sessionEpoch===conversationEpoch && turnDetector.hasSpeech)queueConversationResponse();
   };
