@@ -773,3 +773,34 @@ try{
  const remembered=JSON.parse(localStorage.getItem(practiceTextKey)||'null');
  if(remembered){lastPracticeText=remembered;$('resume-practice').hidden=false;if(remembered.updatedAt>=Number(storedStories.draftUpdatedAt||0))restorePracticeText(remembered);}
 }catch{notice('지난 연습을 불러오지 못했어요. 저장한 일기장은 그대로 있어요.');}
+
+// Share only the public studio link, never personal text or recordings.
+const siteShareLink='https://my-english-podguest.netlify.app/?share=studio-v2';
+$('share-link').value=siteShareLink;
+function showShareLink(){
+ const dialog=$('share-dialog');$('share-status').textContent='링크를 길게 눌러 복사할 수도 있어요.';
+ if(!dialog.open){if(dialog.showModal)dialog.showModal();else dialog.setAttribute('open','');}
+ $('share-link').focus();$('share-link').select();
+}
+async function copySiteShareLink(){
+ try{
+  if(!navigator.clipboard?.writeText)throw new Error('clipboard_unavailable');
+  await navigator.clipboard.writeText(siteShareLink);
+  if($('share-dialog').open)$('share-status').textContent='링크를 복사했어요.';
+  else notice('공유 링크를 복사했어요.');
+  return true;
+ }catch{showShareLink();return false;}
+}
+$('share-site').onclick=async()=>{
+ const button=$('share-site');if(button.disabled)return;button.disabled=true;
+ try{
+  if(navigator.share){
+   try{await navigator.share({title:'나는 영어 팟게스트',text:'내 하루가, 나의 영어로. 나만의 영어 팟게스트 스튜디오.',url:siteShareLink});return;}
+   catch(error){if(error.name==='AbortError')return;}
+  }
+  await copySiteShareLink();
+ }finally{button.disabled=false;}
+};
+$('copy-share-link').onclick=copySiteShareLink;
+$('share-link').onclick=()=>{$('share-link').select();};
+$('close-share').onclick=()=>{if($('share-dialog').close)$('share-dialog').close();else $('share-dialog').removeAttribute('open');};
