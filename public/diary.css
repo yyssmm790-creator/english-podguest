@@ -82,3 +82,6 @@ body[data-mode=podcast][data-podcast-stage=hidden] .practice-top .diary-open{mar
 body[data-screen=practice][data-mode=friend] footer{display:none}
 .paper-heading #toggle-script{margin-left:auto}
 #practice-status:empty{display:none}
+
+.writing-tools{display:flex;justify-content:flex-end}.writing-tools .text-button{font-size:12px;min-height:44px;padding:8px 6px;color:#6d8057}
+.saved-stories{width:100%;margin:14px 0 0}.saved-stories>details>summary{color:#eee8d4;min-height:44px;font-size:12px}.saved-stories #saved-story-list{background:#faf8ef;border-radius:12px;padding:0 12px;color:#667953}.saved-stories #saved-story-list:empty{display:none}.saved-stories #saved-story-list>p{padding:12px 0}

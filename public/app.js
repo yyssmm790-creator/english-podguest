@@ -709,10 +709,10 @@ const storyStorageKey='podguest-stories-v1';
 let storedStories={draft:'',stories:[]};
 window.storyStorageReady=true;
 function storyStorageFailure(){
- $('story-save-status').textContent='이 브라우저에 저장하지 못했어요. 페이지를 닫기 전에 이야기를 복사해 주세요.';
+ $('story-save-status').hidden=false;$('story-save-status').textContent='이 브라우저에 저장하지 못했어요. 페이지를 닫기 전에 이야기를 복사해 주세요.';
 }
 function writeStories(){
- try{localStorage.setItem(storyStorageKey,JSON.stringify(storedStories));$('story-save-status').textContent='작성 중인 내용은 다음에 이어볼 수 있어요.';return true;}
+ try{localStorage.setItem(storyStorageKey,JSON.stringify(storedStories));$('story-save-status').textContent='';$('story-save-status').hidden=true;return true;}
  catch{storyStorageFailure();return false;}
 }
 function saveStoryDraft(){
@@ -725,7 +725,7 @@ function saveGeneratedStory(){
 }
 function renderSavedStories(){
  const list=$('saved-story-list');list.replaceChildren();
- if(!storedStories.stories.length){const p=document.createElement('p');p.textContent='이전에 보관한 대본이 없어요. 마음에 드는 녹음은 💾로 일기장에 남겨보세요.';list.append(p);}
+ if(!storedStories.stories.length){const p=document.createElement('p');p.textContent='보관한 대본이 없어요.';list.append(p);}
  for(const entry of storedStories.stories){
   const row=document.createElement('div');row.className='saved-story-row';
   const open=document.createElement('button');open.type='button';open.className='saved-story-open';
@@ -741,11 +741,11 @@ function renderSavedStories(){
 try{
  const saved=JSON.parse(localStorage.getItem(storyStorageKey)||'null');
  if(saved && typeof saved.draft==='string' && Array.isArray(saved.stories)){
-  storedStories.draft=saved.draft.slice(0,2000);storedStories.draftUpdatedAt=Number(saved.draftUpdatedAt)||0;
+  storedStories.draft=saved.draft.slice(0,2000);storedStories.draftUpdatedAt=Number(saved.draftUpdatedAt)||0;storedStories.startFresh=saved.startFresh===true;
   for(const entry of saved.stories){try{if(typeof entry.source!=='string' || entry.source.length>2000)continue;storedStories.stories.push({...entry,result:normalizeStoryResult(entry.result)});}catch{}}
   if(saved.current){try{storedStories.current={...saved.current,result:normalizeStoryResult(saved.current.result)};personalStory={source:storedStories.current.source,result:storedStories.current.result};}catch{}}
   $('story').value=storedStories.draft;
-  if(storedStories.draft){$('count').textContent=storedStories.draft.length.toLocaleString()+' / 2,000';showWriting();$('story-save-status').textContent='지난번 작성하던 이야기를 불러왔어요.';}
+  if(storedStories.draft || storedStories.startFresh){$('count').textContent=storedStories.draft.length.toLocaleString()+' / 2,000';showWriting();}
  }
 }catch{storyStorageFailure();}
 renderSavedStories();
@@ -756,6 +756,7 @@ let lastPracticeText=null;
 function rememberPracticeText(){
  if(!selected || !examples[selected] || mode!=='podcast')return;
  const data=examples[selected];
+ if(storedStories.startFresh){storedStories.startFresh=false;writeStories();}
  const state={data,hidden,level:chosenLevel,personalStory,exampleKey:activeExampleKey,updatedAt:Date.now()};
  try{localStorage.setItem(practiceTextKey,JSON.stringify(state));lastPracticeText=state;$('resume-practice').hidden=false;}
  catch{notice('대본을 다시 불러올 수 있도록 보관하지 못했어요. 창을 닫기 전에 복사해 주세요.');}
@@ -771,7 +772,7 @@ function restorePracticeText(state){
 $('resume-practice').onclick=()=>restorePracticeText(lastPracticeText);
 try{
  const remembered=JSON.parse(localStorage.getItem(practiceTextKey)||'null');
- if(remembered){lastPracticeText=remembered;$('resume-practice').hidden=false;if(remembered.updatedAt>=Number(storedStories.draftUpdatedAt||0))restorePracticeText(remembered);}
+ if(remembered){lastPracticeText=remembered;$('resume-practice').hidden=false;if(!storedStories.startFresh && remembered.updatedAt>=Number(storedStories.draftUpdatedAt||0))restorePracticeText(remembered);}
 }catch{notice('지난 연습을 불러오지 못했어요. 저장한 일기장은 그대로 있어요.');}
 
 // Share only the public studio link, never personal text or recordings.
@@ -804,3 +805,11 @@ $('share-site').onclick=async()=>{
 $('copy-share-link').onclick=copySiteShareLink;
 $('share-link').onclick=()=>{$('share-link').select();};
 $('close-share').onclick=()=>{if($('share-dialog').close)$('share-dialog').close();else $('share-dialog').removeAttribute('open');};
+
+$('new-story').onclick=()=>{
+ cancelStoryGeneration();continueAfterVoice=false;
+ if(recognition){recognition.onresult=null;recognition.onend=null;recognition.onerror=null;try{if(recognition.abort)recognition.abort();else recognition.stop();}catch{}}
+ recognition=null;voiceActive=false;$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='눌러서 이야기하기';$('voice-status').textContent='두서없어도 괜찮아요. 당신의 이야기니까.';
+ showStep(0);resetAudio();activeExampleKey=null;personalStory=null;selected=null;turn=0;conversationComplete=false;
+ storedStories.startFresh=true;$('story').value='';count();showWriting(true);updateAmbience();
+};

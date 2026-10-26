@@ -26,7 +26,7 @@ try{
  await page.click('#studio-record');await page.waitForFunction(()=>recorder?.state==='recording');await page.waitForTimeout(1500);await page.click('#listen-own');
  await page.waitForFunction(()=>latestPracticeTake && !document.querySelector('#recording-result audio').paused);
  assert.equal((await page.evaluate(()=>diaryStore.list())).length,0);
- await page.click('#listen-own');assert.equal(await page.locator('#listen-own').getAttribute('aria-pressed'),'false');
+ await page.click('#listen-own');await page.waitForFunction(()=>document.querySelector('#listen-own').getAttribute('aria-pressed')==='false');assert.equal(await page.evaluate(()=>document.querySelector('#recording-result audio').paused),true);
  await page.click('#restart');assert.equal(await page.locator('#listen-own').isDisabled(),true);
  // The original large microphone stage has its own listen/save/retry controls.
  await page.click('#toggle-script');assert.equal(await page.locator('#studio-record').isVisible(),false);assert.equal(await page.locator('#large-studio-record').isVisible(),true);
@@ -48,6 +48,6 @@ try{
  await page.click('#studio-record');await page.waitForFunction(()=>recorder?.state==='recording');await page.waitForTimeout(1200);await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('#studio-record:visible');
  assert.equal(await page.evaluate(()=>examples[selected].story),source);assert.equal((await page.evaluate(()=>diaryStore.list())).length,1,'closing practice does not save audio');
  await page.click('#home .brand-en');assert.equal(await page.locator('#input-panel').isVisible(),true);assert.equal(await page.locator('#writing-area').isVisible(),false);
- await page.click('#write-tab');await page.fill('#story','다음 날 새로 적기 시작한 이야기');await page.reload({waitUntil:'domcontentloaded'});assert.equal(await page.locator('#input-panel').isVisible(),true);assert.equal(await page.locator('#story').inputValue(),'다음 날 새로 적기 시작한 이야기');await page.click('#resume-practice');assert.equal(await page.evaluate(()=>examples[selected].story),source);
+ await page.click('#write-tab');await page.fill('#story','다음 날 새로 적기 시작한 이야기');await page.reload({waitUntil:'domcontentloaded'});assert.equal(await page.locator('#input-panel').isVisible(),true);assert.equal(await page.locator('#story').inputValue(),'다음 날 새로 적기 시작한 이야기');await page.locator('.saved-stories summary').click();await page.click('#resume-practice');assert.equal(await page.evaluate(()=>examples[selected].story),source);
  assert.deepEqual(errors,[]);console.log('PASS read/hear without saving; restored large mic; explicit one-pair favorites; retry discards; reopen restores text only; no automatic diary writes; phone layout');
 }finally{await browser.close();}
