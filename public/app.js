@@ -564,7 +564,7 @@ $('voice-tab').onclick=()=>{
  recognition.onerror=()=>{continueAfterVoice=false;$('voice-status').textContent='마이크를 확인하거나 글로 남겨주세요.';notice('마이크를 사용할 수 없어요. 브라우저의 마이크 권한을 확인해 주세요.');};
  try{recognition.start();}catch{continueAfterVoice=false;showWriting(true);notice('음성 입력을 시작하지 못했어요. 글로 남기거나 다시 시도해 주세요.');}
 };
-$('write-tab').onclick=()=>{continueAfterVoice=false;recognition?.stop();showWriting(true);};
+$('write-tab').onclick=()=>{continueAfterVoice=false;recognition?.stop();showWriting();const examplesPanel=document.querySelector('.examples');examplesPanel.open=!examplesPanel.open;if(examplesPanel.open)examplesPanel.scrollIntoView({block:'nearest',behavior:'smooth'});};
 $('sound').onclick=async()=>{
  const music=$('cafe-music'),version=++musicVersion;musicRequested=!musicRequested;
  if(!musicRequested){soundEnabled=false;music.pause();updateAmbience();return;}
@@ -736,17 +736,26 @@ function saveGeneratedStory(){
  const saved={source:personalStory.source,result:personalStory.result,level:chosenLevel,updatedAt:Date.now()};
  storedStories.current=saved;writeStories();
 }
+$('save-story-text').onclick=()=>{
+ const source=$('story').value.trim();if(!source){showWriting(true);return;}
+ const previous=[...storedStories.stories];const result=personalStory?.source===source?personalStory.result:null;
+ storedStories.stories=storedStories.stories.filter(entry=>entry.source!==source);
+ storedStories.stories.unshift({source,result,level:chosenLevel,updatedAt:Date.now()});
+ if(!writeStories()){storedStories.stories=previous;return;}
+ renderSavedStories();$('save-story-text').textContent='저장했어요 ✓';
+};
+$('story').addEventListener('input',()=>{$('save-story-text').textContent='현재 글 저장';});
 function renderSavedStories(){
  const list=$('saved-story-list');list.replaceChildren();
  if(!storedStories.stories.length){const p=document.createElement('p');p.textContent='보관한 대본이 없어요.';list.append(p);}
  for(const entry of storedStories.stories){
   const row=document.createElement('div');row.className='saved-story-row';
   const open=document.createElement('button');open.type='button';open.className='saved-story-open';
-  const title=document.createElement('strong');title.textContent=entry.result.title;
+  const title=document.createElement('strong');title.textContent=entry.result?.title || entry.source.slice(0,28);
   const preview=document.createElement('span');preview.textContent=entry.source;
-  const date=document.createElement('small');date.textContent=new Date(entry.updatedAt).toLocaleDateString('ko-KR')+' · 다시 연습하기';open.append(title,preview,date);
-  open.onclick=()=>{cancelStoryGeneration();personalStory={source:entry.source,result:entry.result};activeExampleKey=null;chosenLevel=entry.level||1;$('story').value=entry.source;count();syncLevels();applyStoryLevel();showStep(1);};
-  const remove=document.createElement('button');remove.type='button';remove.className='text-button';remove.textContent='삭제';remove.setAttribute('aria-label',entry.result.title+' 이야기 삭제');
+  const date=document.createElement('small');date.textContent=new Date(entry.updatedAt).toLocaleDateString('ko-KR')+(entry.result?' · 다시 연습하기':'');open.append(title,preview,date);
+  open.onclick=()=>{if(!entry.result){cancelStoryGeneration();activeExampleKey=null;personalStory=null;$('story').value=entry.source;chosenLevel=entry.level||1;count();syncLevels();showStep(0);showWriting(true);return;}cancelStoryGeneration();personalStory={source:entry.source,result:entry.result};activeExampleKey=null;chosenLevel=entry.level||1;$('story').value=entry.source;count();syncLevels();applyStoryLevel();showStep(1);};
+  const remove=document.createElement('button');remove.type='button';remove.className='text-button';remove.textContent='삭제';remove.setAttribute('aria-label',(entry.result?.title || entry.source.slice(0,28))+' 이야기 삭제');
   remove.onclick=()=>{storedStories.stories=storedStories.stories.filter(item=>item!==entry);writeStories();renderSavedStories();};
   row.append(open,remove);list.append(row);
  }
@@ -755,7 +764,7 @@ try{
  const saved=JSON.parse(localStorage.getItem(storyStorageKey)||'null');
  if(saved && typeof saved.draft==='string' && Array.isArray(saved.stories)){
   storedStories.draft=saved.draft.slice(0,2000);storedStories.draftUpdatedAt=Number(saved.draftUpdatedAt)||0;storedStories.startFresh=saved.startFresh===true;
-  for(const entry of saved.stories){try{if(typeof entry.source!=='string' || entry.source.length>2000)continue;storedStories.stories.push({...entry,result:normalizeStoryResult(entry.result)});}catch{}}
+  for(const entry of saved.stories){try{if(typeof entry.source!=='string' || entry.source.length>2000)continue;storedStories.stories.push({...entry,result:entry.result?normalizeStoryResult(entry.result):null});}catch{}}
   if(saved.current){try{storedStories.current={...saved.current,result:normalizeStoryResult(saved.current.result)};personalStory={source:storedStories.current.source,result:storedStories.current.result};}catch{}}
   $('story').value=storedStories.draft;
   if(storedStories.draft || storedStories.startFresh){$('count').textContent=storedStories.draft.length.toLocaleString()+' / 2,000';showWriting();}
@@ -822,7 +831,7 @@ $('close-share').onclick=()=>{if($('share-dialog').close)$('share-dialog').close
 $('new-story').onclick=()=>{
  cancelStoryGeneration();continueAfterVoice=false;
  if(recognition){recognition.onresult=null;recognition.onend=null;recognition.onerror=null;try{if(recognition.abort)recognition.abort();else recognition.stop();}catch{}}
- recognition=null;voiceActive=false;$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='눌러서 이야기하기';$('voice-status').textContent='두서없어도 괜찮아요. 당신의 이야기니까.';
+ recognition=null;voiceActive=false;$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='눌러서 이야기하기';$('voice-status').textContent='';
  showStep(0);resetAudio();activeExampleKey=null;personalStory=null;selected=null;turn=0;conversationComplete=false;
  storedStories.startFresh=true;$('story').value='';count();showWriting(true);updateAmbience();
 };
