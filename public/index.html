@@ -366,6 +366,10 @@ body[data-mode=friend] #listen-own>span:first-child{display:grid;place-items:cen
 body[data-mode=friend] #listen-own .own-voice-label{display:inline;white-space:nowrap}
 body[data-mode=friend] #listen-own[aria-pressed=true]>span:first-child{background:#e1e9d6;border-color:#82986c}
 @media(max-height:500px) and (orientation:landscape){body[data-mode=friend] #listen-own{grid-column:1/3;grid-row:2}body[data-mode=friend] #next-question{grid-row:2}}
+
+#input-panel #write-story{align-self:center;display:flex;align-items:center;gap:8px;margin:28px 0 0;min-height:44px;padding:8px 12px;color:#fff9e9;font-size:12px}
+#write-story .icon{width:20px;height:20px}
+#write-story>span:first-child{font-size:11px;opacity:.8}
 </style></head>
 <body data-screen="input" data-mode="podcast">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="icon-sound" viewBox="0 0 24 24"><path d="M11 5L5 9H2v6h3l6 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol><symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-3 2 2-6a9 9 0 1 1 18-5Z"/><path d="M7 10h10M7 14h6"/></symbol><symbol id="icon-share" viewBox="0 0 24 24"><path d="M12 16V3M7 8l5-5 5 5M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/></symbol><symbol id="icon-pen" viewBox="0 0 24 24"><path d="m15 3 6 6M3 21l2-7L17 2l5 5L10 19z"/></symbol></defs></svg>
@@ -379,7 +383,8 @@ body[data-mode=friend] #listen-own[aria-pressed=true]>span:first-child{backgroun
    <button class="diary-open text-button" type="button">내 팟게스트 일기장 ↗</button><div class="input-heading"><span class="eyebrow">TODAY, IN YOUR OWN WORDS</span><h1>오늘, 어떤 하루였나요?</h1></div>
    <div class="input-dock">
     <div class="input-card" id="writing-area" hidden><div class="writing-tools"><button id="new-story" class="text-button" type="button" aria-label="작성 중인 글 비우고 새로 쓰기">↻ 새로 쓰기</button></div><label class="sr-only" for="story">오늘 있었던 일</label><textarea id="story" maxlength="2000" placeholder="오늘 있었던 일, 생각나는 대로…"></textarea><div class="input-bottom"><span id="input-hint" hidden></span><span id="count">0 / 2,000</span></div><fieldset class="story-levels"><legend class="sr-only">영어 단계 선택</legend><div class="level-options"><button type="button" data-level="1" aria-pressed="true"><strong>1단계</strong><small>아주 쉽게</small></button><button type="button" data-level="2" aria-pressed="false"><strong>2단계</strong><small>자연스럽게</small></button><button type="button" data-level="3" aria-pressed="false"><strong>3단계</strong><small>조금 더 풍부하게</small></button></div></fieldset><button class="primary" id="make-script">내 이야기로 영어 만들기 <svg class="icon"><use href="#icon-arrow"/></svg></button><div id="generation-progress" hidden><p id="generation-status" role="status" aria-live="polite">내 이야기로 세 단계의 영어 대본을 만들고 있어요…</p><button type="button" id="cancel-generation" class="text-button">취소 · 이야기 계속 쓰기</button></div></div>
-    <button id="voice-tab" class="hero-mic" aria-label="마이크를 눌러 오늘의 이야기 말하기" aria-pressed="false"><svg class="icon"><use href="#icon-mic"/></svg><span>눌러서 이야기하기</span></button>
+    <button id="voice-tab" class="hero-mic" aria-label="마이크를 눌러 오늘의 이야기 말하기" aria-pressed="false"><svg class="icon"><use href="#icon-mic"/></svg><span>편하게 말로하기</span></button>
+    <button id="write-story" class="write-button write-story-button" type="button"><span>or</span><svg class="icon" aria-hidden="true"><use href="#icon-pen"/></svg><span>글로 작성하기</span></button>
     <div id="voice-status" class="voice-status" role="status"></div>
     <section class="saved-stories" aria-label="저장한 이야기"><p id="story-save-status" role="status" hidden></p><details><summary>대본 저장해두기</summary><button id="save-story-text" class="resume-practice" type="button">현재 글 저장</button><button id="resume-practice" class="resume-practice" type="button" hidden>중단한 연습 이어보기 ↗</button><div id="saved-story-list"></div></details></section>
     <details class="examples"><summary>먼저 예시로 둘러볼까요? <span>↗</span></summary><div class="example-row"><button data-example="coffee">☕ 혼자 마신 커피</button><button data-example="work">☁ 지친 하루</button><button data-example="walk">🌿 저녁 산책</button></div></details>
@@ -933,7 +938,7 @@ function syncLevels(){
 function setStoryBusy(busy){
  $('make-script').disabled=busy;$('make-script').setAttribute('aria-busy',String(busy));
  $('make-script').textContent=busy?'내 이야기로 대본 만드는 중…':'내 이야기로 영어 만들기';
- $('story').readOnly=busy;$('voice-tab').disabled=busy;$('write-tab').disabled=busy;
+ $('story').readOnly=busy;$('voice-tab').disabled=busy;$('write-tab').disabled=busy;$('write-story').disabled=busy;
  document.querySelectorAll('button[data-level],button[data-example]').forEach(button=>button.disabled=busy);
  $('generation-progress').hidden=!busy;
 }
@@ -1106,7 +1111,7 @@ $('voice-tab').onclick=()=>{
   $('story').value=(previous+' '+captured+' '+interim).trim().slice(0,2000);count();
  };
  recognition.onend=()=>{
-  voiceActive=false;updateAmbience();$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='눌러서 이야기하기';
+  voiceActive=false;updateAmbience();$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='편하게 말로하기';
   $('voice-status').textContent=heard?'이야기를 담았어요.':'편하게 다시 이야기해 주세요.';
   const advance=continueAfterVoice && heard && !$('input-panel').hidden && $('story').value.trim();
   continueAfterVoice=false;if(advance)$('make-script').click();
@@ -1114,6 +1119,7 @@ $('voice-tab').onclick=()=>{
  recognition.onerror=()=>{continueAfterVoice=false;$('voice-status').textContent='마이크를 확인하거나 글로 남겨주세요.';notice('마이크를 사용할 수 없어요. 브라우저의 마이크 권한을 확인해 주세요.');};
  try{recognition.start();}catch{continueAfterVoice=false;showWriting(true);notice('음성 입력을 시작하지 못했어요. 글로 남기거나 다시 시도해 주세요.');}
 };
+$('write-story').onclick=()=>{continueAfterVoice=false;recognition?.stop();notice();$('voice-status').textContent='';showWriting(true);$('story').scrollIntoView({block:'center'});};
 $('write-tab').onclick=()=>{continueAfterVoice=false;recognition?.stop();showWriting();const examplesPanel=document.querySelector('.examples');examplesPanel.open=!examplesPanel.open;if(examplesPanel.open)examplesPanel.scrollIntoView({block:'nearest',behavior:'smooth'});};
 $('sound').onclick=async()=>{
  const music=$('cafe-music'),version=++musicVersion;musicRequested=!musicRequested;
@@ -1381,7 +1387,7 @@ $('close-share').onclick=()=>{if($('share-dialog').close)$('share-dialog').close
 $('new-story').onclick=()=>{
  cancelStoryGeneration();continueAfterVoice=false;
  if(recognition){recognition.onresult=null;recognition.onend=null;recognition.onerror=null;try{if(recognition.abort)recognition.abort();else recognition.stop();}catch{}}
- recognition=null;voiceActive=false;$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='눌러서 이야기하기';$('voice-status').textContent='';
+ recognition=null;voiceActive=false;$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='편하게 말로하기';$('voice-status').textContent='';
  showStep(0);resetAudio();activeExampleKey=null;personalStory=null;selected=null;turn=0;conversationComplete=false;
  storedStories.startFresh=true;$('story').value='';count();showWriting(true);updateAmbience();
 };

@@ -383,7 +383,7 @@ function syncLevels(){
 function setStoryBusy(busy){
  $('make-script').disabled=busy;$('make-script').setAttribute('aria-busy',String(busy));
  $('make-script').textContent=busy?'내 이야기로 대본 만드는 중…':'내 이야기로 영어 만들기';
- $('story').readOnly=busy;$('voice-tab').disabled=busy;$('write-tab').disabled=busy;
+ $('story').readOnly=busy;$('voice-tab').disabled=busy;$('write-tab').disabled=busy;$('write-story').disabled=busy;
  document.querySelectorAll('button[data-level],button[data-example]').forEach(button=>button.disabled=busy);
  $('generation-progress').hidden=!busy;
 }
@@ -556,7 +556,7 @@ $('voice-tab').onclick=()=>{
   $('story').value=(previous+' '+captured+' '+interim).trim().slice(0,2000);count();
  };
  recognition.onend=()=>{
-  voiceActive=false;updateAmbience();$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='눌러서 이야기하기';
+  voiceActive=false;updateAmbience();$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='편하게 말로하기';
   $('voice-status').textContent=heard?'이야기를 담았어요.':'편하게 다시 이야기해 주세요.';
   const advance=continueAfterVoice && heard && !$('input-panel').hidden && $('story').value.trim();
   continueAfterVoice=false;if(advance)$('make-script').click();
@@ -564,6 +564,7 @@ $('voice-tab').onclick=()=>{
  recognition.onerror=()=>{continueAfterVoice=false;$('voice-status').textContent='마이크를 확인하거나 글로 남겨주세요.';notice('마이크를 사용할 수 없어요. 브라우저의 마이크 권한을 확인해 주세요.');};
  try{recognition.start();}catch{continueAfterVoice=false;showWriting(true);notice('음성 입력을 시작하지 못했어요. 글로 남기거나 다시 시도해 주세요.');}
 };
+$('write-story').onclick=()=>{continueAfterVoice=false;recognition?.stop();notice();$('voice-status').textContent='';showWriting(true);$('story').scrollIntoView({block:'center'});};
 $('write-tab').onclick=()=>{continueAfterVoice=false;recognition?.stop();showWriting();const examplesPanel=document.querySelector('.examples');examplesPanel.open=!examplesPanel.open;if(examplesPanel.open)examplesPanel.scrollIntoView({block:'nearest',behavior:'smooth'});};
 $('sound').onclick=async()=>{
  const music=$('cafe-music'),version=++musicVersion;musicRequested=!musicRequested;
@@ -831,7 +832,7 @@ $('close-share').onclick=()=>{if($('share-dialog').close)$('share-dialog').close
 $('new-story').onclick=()=>{
  cancelStoryGeneration();continueAfterVoice=false;
  if(recognition){recognition.onresult=null;recognition.onend=null;recognition.onerror=null;try{if(recognition.abort)recognition.abort();else recognition.stop();}catch{}}
- recognition=null;voiceActive=false;$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='눌러서 이야기하기';$('voice-status').textContent='';
+ recognition=null;voiceActive=false;$('voice-tab').classList.remove('selected');$('voice-tab').setAttribute('aria-pressed','false');$('voice-tab').querySelector('span').textContent='편하게 말로하기';$('voice-status').textContent='';
  showStep(0);resetAudio();activeExampleKey=null;personalStory=null;selected=null;turn=0;conversationComplete=false;
  storedStories.startFresh=true;$('story').value='';count();showWriting(true);updateAmbience();
 };

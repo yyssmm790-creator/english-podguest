@@ -261,3 +261,7 @@ body[data-mode=friend] #listen-own>span:first-child{display:grid;place-items:cen
 body[data-mode=friend] #listen-own .own-voice-label{display:inline;white-space:nowrap}
 body[data-mode=friend] #listen-own[aria-pressed=true]>span:first-child{background:#e1e9d6;border-color:#82986c}
 @media(max-height:500px) and (orientation:landscape){body[data-mode=friend] #listen-own{grid-column:1/3;grid-row:2}body[data-mode=friend] #next-question{grid-row:2}}
+
+#input-panel #write-story{align-self:center;display:flex;align-items:center;gap:8px;margin:28px 0 0;min-height:44px;padding:8px 12px;color:#fff9e9;font-size:12px}
+#write-story .icon{width:20px;height:20px}
+#write-story>span:first-child{font-size:11px;opacity:.8}
