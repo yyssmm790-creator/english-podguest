@@ -326,7 +326,7 @@ function updateRecordingUI() {
  $('restart').disabled=conversationRunning || recordingFinalizing || savingTake;
  $('toggle-script').disabled = recordingFinalizing || savingTake;
  $('friend-toggle-script').disabled=$('toggle-script').disabled;
- $('friend-toggle-script').textContent=hidden?'대사 다시 보기':'가리며 말하기';
+ $('friend-toggle-script').textContent=hidden?'대본 다시 보기':'가리며 말하기';
  $('friend-toggle-script').setAttribute('aria-pressed',String(hidden));
  ['listen-practice','hear-question'].forEach(id=>$(id).disabled=conversationRunning || readingPractice || active || recordPending);
  $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady || !selectedSpeechProfile());
