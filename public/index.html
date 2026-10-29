@@ -409,6 +409,12 @@ body[data-mode=friend] #listen-own>span:first-child{flex:0 0 40px;width:40px;hei
 body[data-mode=friend] #listen-own .own-voice-label{white-space:normal;line-height:1.4}
 body[data-mode=friend] #next-question{grid-column:3;grid-row:2;justify-self:end}
 @media(max-width:350px){body[data-mode=friend] #listen-own{font-size:10px;gap:4px}body[data-mode=friend] #listen-own>span:first-child{flex-basis:36px;width:36px;height:36px;font-size:22px}}
+/* Give the AI artwork more room and lower the complete recording group. */
+@media(min-height:601px) and (orientation:portrait){
+ body[data-mode=friend] .friend-person{flex-basis:clamp(108px,18svh,164px);height:clamp(108px,18svh,164px)}
+ body[data-mode=friend] .orb-field{width:clamp(50px,9svh,78px);height:clamp(50px,9svh,78px)}
+ body[data-mode=friend] .practice-controls{margin-top:6px}
+}
 </style></head>
 <body data-screen="input" data-mode="podcast">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="icon-sound" viewBox="0 0 24 24"><path d="M11 5L5 9H2v6h3l6 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol><symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-3 2 2-6a9 9 0 1 1 18-5Z"/><path d="M7 10h10M7 14h6"/></symbol><symbol id="icon-share" viewBox="0 0 24 24"><path d="M12 16V3M7 8l5-5 5 5M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/></symbol><symbol id="icon-pen" viewBox="0 0 24 24"><path d="m15 3 6 6M3 21l2-7L17 2l5 5L10 19z"/></symbol></defs></svg>

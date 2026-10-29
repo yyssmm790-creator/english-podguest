@@ -304,3 +304,9 @@ body[data-mode=friend] #listen-own>span:first-child{flex:0 0 40px;width:40px;hei
 body[data-mode=friend] #listen-own .own-voice-label{white-space:normal;line-height:1.4}
 body[data-mode=friend] #next-question{grid-column:3;grid-row:2;justify-self:end}
 @media(max-width:350px){body[data-mode=friend] #listen-own{font-size:10px;gap:4px}body[data-mode=friend] #listen-own>span:first-child{flex-basis:36px;width:36px;height:36px;font-size:22px}}
+/* Give the AI artwork more room and lower the complete recording group. */
+@media(min-height:601px) and (orientation:portrait){
+ body[data-mode=friend] .friend-person{flex-basis:clamp(108px,18svh,164px);height:clamp(108px,18svh,164px)}
+ body[data-mode=friend] .orb-field{width:clamp(50px,9svh,78px);height:clamp(50px,9svh,78px)}
+ body[data-mode=friend] .practice-controls{margin-top:6px}
+}
