@@ -294,3 +294,13 @@ body[data-mode=friend] #record .conversation-mic-icon{width:42px;height:42px}
 @media(max-height:600px) and (orientation:portrait){body[data-mode=friend] .conversation-copy{max-height:36%}body[data-mode=friend] #record .recording-orb{width:68px;height:84px}body[data-mode=friend] #record .conversation-mic-icon{width:32px;height:32px}}
 @media(max-height:500px) and (orientation:landscape){body[data-mode=friend] .conversation-copy{flex:1 1 auto;max-height:none}body[data-mode=friend] #record .recording-orb{width:30px;height:36px;margin-bottom:14px}body[data-mode=friend] #record .recording-orb:after{width:38px;height:14px;bottom:-14px;border-bottom-width:4px}body[data-mode=friend] #record .conversation-mic-icon{width:22px;height:22px}}
 @media(orientation:portrait){body[data-mode=friend] .practice-controls{margin-top:-14px}}
+
+/* Playback, elapsed recording time, and next share one row. */
+body[data-mode=friend] .practice-controls{grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr);grid-template-rows:auto 44px;gap:10px 8px}
+body[data-mode=friend] #record{grid-column:1/-1;grid-row:1;justify-self:center;width:170px}
+body[data-mode=friend] #conversation-clock{grid-column:2;grid-row:2;align-self:center;justify-self:center;margin:0;white-space:nowrap}
+body[data-mode=friend] #listen-own{grid-column:1;grid-row:2;max-width:100%;gap:6px;font-size:11px;text-align:left}
+body[data-mode=friend] #listen-own>span:first-child{flex:0 0 40px;width:40px;height:40px}
+body[data-mode=friend] #listen-own .own-voice-label{white-space:normal;line-height:1.4}
+body[data-mode=friend] #next-question{grid-column:3;grid-row:2;justify-self:end}
+@media(max-width:350px){body[data-mode=friend] #listen-own{font-size:10px;gap:4px}body[data-mode=friend] #listen-own>span:first-child{flex-basis:36px;width:36px;height:36px;font-size:22px}}
