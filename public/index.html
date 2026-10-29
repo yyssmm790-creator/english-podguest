@@ -240,6 +240,54 @@ body[data-screen=practice][data-mode=friend] #notice:not(:empty){position:fixed;
 body[data-mode=friend] .friend-question{flex:0 1 auto;max-height:30%;min-height:0}
 body[data-mode=friend] .practice-paper{flex:1 1 0}
 @media(max-height:500px) and (orientation:landscape){body[data-mode=friend] .friend-question{max-height:none}}
+/* A larger AI presence and a familiar microphone, with playback after stopping. */
+.conversation-mic-icon{display:none}
+body[data-screen=practice][data-mode=friend] .practice-shell{gap:12px;padding:12px 20px 14px}
+body[data-mode=friend] .friend-person{flex-basis:clamp(96px,18svh,152px);height:clamp(96px,18svh,152px)}
+body[data-mode=friend] .orb-field{width:clamp(76px,12svh,104px);height:clamp(76px,12svh,104px)}
+body[data-mode=friend] .friend-question{padding:6px 0}
+body[data-mode=friend] .friend-question p,body[data-mode=friend] #practice-script p{line-height:1.4;margin-bottom:7px}
+body[data-mode=friend] #question-ko,body[data-mode=friend] #practice-script small{line-height:1.6}
+body[data-mode=friend] .paper-heading{display:none}
+body[data-mode=friend] .practice-paper{padding-top:14px;min-height:60px}
+body[data-mode=friend] .practice-controls{display:grid;grid-template-columns:44px 68px 44px;grid-template-rows:68px 44px;gap:10px 12px;flex:0 0 122px;align-items:center;justify-content:center}
+body[data-mode=friend] #record{grid-column:2;grid-row:1;min-width:68px;width:68px;height:68px;min-height:68px;padding:0;border-radius:50%;display:grid;place-items:center;background:#edf1e3;border:1px solid #d8e1ca;color:#667b53;box-shadow:none}
+body[data-mode=friend] #record .record-label,body[data-mode=friend] #record .record-icon{display:none}
+body[data-mode=friend] #record .conversation-mic-icon{display:block;width:32px;height:36px;stroke-width:1.5;transform:scale(calc(1 + var(--mic-level,0)*.12));transition:transform 80ms linear}
+body[data-mode=friend] #record[data-state=running]{background:#ae5b48;border-color:#ae5b48;color:#fff8ec;box-shadow:0 0 0 calc(var(--mic-level,0)*8px) #ae5b4826}
+body[data-mode=friend] #listen-own{grid-column:2;grid-row:2;justify-self:center}
+body[data-mode=friend] #next-question{grid-column:3;grid-row:1;justify-self:center}
+body[data-mode=friend] #friend-toggle-script{display:block;width:100%;text-align:left;min-height:44px}
+@media(max-width:760px){body[data-screen=practice][data-mode=friend] .practice-shell{padding:10px 16px 12px;gap:10px}}
+@media(max-height:700px) and (orientation:portrait){
+ body[data-screen=practice][data-mode=friend] .practice-shell{padding:6px 14px;gap:5px}
+ body[data-mode=friend] .friend-person{flex-basis:80px;height:80px}
+ body[data-mode=friend] .orb-field{width:64px;height:64px}
+ body[data-mode=friend] .friend-question{flex:1 1 0;min-height:48px;max-height:none;padding:2px 0}
+ body[data-mode=friend] .practice-paper{min-height:50px;padding-top:8px}
+ body[data-mode=friend] #live-voice{flex-basis:20px;min-height:20px}
+ body[data-mode=friend] .voice-wave{height:20px}
+ body[data-mode=friend] .practice-controls{grid-template-columns:44px 56px 44px;grid-template-rows:56px 44px;gap:6px 12px;flex-basis:106px}
+ body[data-mode=friend] #record{width:56px;height:56px;min-width:56px;min-height:56px}
+}
+@media(max-height:500px) and (orientation:landscape){
+ body[data-screen=practice][data-mode=friend] .practice-shell{padding:4px 12px;gap:4px 12px;grid-template-rows:44px minmax(0,1fr) 24px 56px}
+ body[data-mode=friend] .practice-controls{display:flex;flex-direction:row;gap:14px}
+ body[data-mode=friend] #record{width:52px;height:52px;min-width:52px;min-height:52px}
+ body[data-mode=friend] .practice-paper{padding-top:4px;min-height:0}
+}
+@media(prefers-reduced-motion:reduce){body[data-mode=friend] #record .conversation-mic-icon{transform:none;transition:none}}
+/* Richer color is confined to the AI artwork, keeping the reading surface calm. */
+body[data-mode=friend] .orb-scene{--tint:#9fbd78;--shade:#4a805b;--light:#edd077}
+body[data-mode=friend] .orb-scene[data-form=ripple]{--tint:#69b9ad;--shade:#397c8c;--light:#b5e4cf}
+body[data-mode=friend] .orb-scene[data-form=cloud]{--tint:#b39bd6;--shade:#75549e;--light:#efd0b1}
+body[data-mode=friend] .orb-core{background:radial-gradient(circle at 30% 23%,#fff4ce66,transparent 48%),linear-gradient(140deg,var(--light),var(--tint) 48%,var(--shade));box-shadow:inset 0 0 16px #ffffff45,inset -10px -12px 24px #3a4a6633,0 9px 24px #5e725f30;filter:saturate(1.22)}
+body[data-mode=friend] .orb-lobe{opacity:.5}
+body[data-mode=friend] .orb-ring{border-color:#899e7e55}
+body[data-mode=friend] #hidden-script{display:grid;place-items:center}
+body[data-mode=friend] #hidden-script>*{display:none}
+body[data-mode=friend] #hidden-script:before{content:'···';color:#a0ab92;font-size:28px}
+body[data-mode=friend] #record[data-state=ready]{background:#edf1e3;border-color:#d8e1ca;color:#667b53;box-shadow:none}
 </style></head>
 <body data-screen="input" data-mode="podcast">
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><symbol id="icon-mic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol><symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="icon-sound" viewBox="0 0 24 24"><path d="M11 5L5 9H2v6h3l6 4zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol><symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11a9 9 0 0 1-9 9H4l-3 2 2-6a9 9 0 1 1 18-5Z"/><path d="M7 10h10M7 14h6"/></symbol><symbol id="icon-share" viewBox="0 0 24 24"><path d="M12 16V3M7 8l5-5 5 5M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/></symbol><symbol id="icon-pen" viewBox="0 0 24 24"><path d="m15 3 6 6M3 21l2-7L17 2l5 5L10 19z"/></symbol></defs></svg>
@@ -271,12 +319,12 @@ body[data-mode=friend] .practice-paper{flex:1 1 0}
      <div class="orb-field" id="orb-field" role="img" aria-label="편안하게 기다리는 AI"><span class="orb-aura"></span><span class="orb-ring ring-one"></span><span class="orb-ring ring-two"></span><span class="orb-core"><i class="orb-lobe lobe-one"></i><i class="orb-lobe lobe-two"></i><i class="orb-lobe lobe-three"></i><i class="orb-shine"></i></span></div>
      <div class="orb-caption"><span id="orb-form-name">따뜻한 빛</span><span class="friend-presence"><i></i><span id="friend-presence" role="status" aria-live="polite">편하게 이야기해 주세요.</span></span></div>
     </div>
-    <details class="friend-settings"><summary aria-label="대화 설정">⚙</summary><div class="settings-content"><button id="change-form" type="button" aria-label="AI 모습 바꾸기">↻ 모습 바꾸기</button><div class="person-options" role="group" aria-label="목소리 성별"><button data-person="female" aria-pressed="true">여성 목소리</button><button data-person="male" aria-pressed="false">남성 목소리</button></div><label for="friend-voice">목소리</label><select id="friend-voice"></select><button id="preview-voice" class="text-button">목소리 들어보기</button><small id="voice-help"></small></div></details>
+    <details class="friend-settings"><summary aria-label="대화 설정">⚙</summary><div class="settings-content"><button id="friend-toggle-script" class="text-button" type="button">대본 가리기</button><button id="change-form" type="button" aria-label="AI 모습 바꾸기">↻ 모습 바꾸기</button><div class="person-options" role="group" aria-label="목소리 성별"><button data-person="female" aria-pressed="true">여성 목소리</button><button data-person="male" aria-pressed="false">남성 목소리</button></div><label for="friend-voice">목소리</label><select id="friend-voice"></select><button id="preview-voice" class="text-button">목소리 들어보기</button><small id="voice-help"></small></div></details>
    </section>
    <div id="friend-question" class="friend-question" hidden><span id="question-avatar" hidden>J</span><div><p id="question-en"></p><span id="question-ko"></span></div><button id="hear-question" class="round-control" aria-label="질문 다시 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button></div>
    <div class="practice-paper"><div class="paper-heading"><span id="paper-label">내 이야기</span><button id="toggle-script" aria-pressed="false">가리며 말하기</button></div><div id="practice-script"></div><div id="hidden-script" hidden><button type="button" id="large-studio-record" class="studio-record" aria-label="녹음 시작" aria-pressed="false"><span class="recording-orb" id="large-recording-orb"><svg class="icon"><use href="#icon-mic"/></svg></span><span id="large-studio-record-label">마이크를 눌러 시작</span></button><div class="mic-level" aria-hidden="true"><span id="mic-level-fill"></span></div><span id="recording-clock" class="recording-clock">00:00</span><p id="hidden-title">당신의 이야기를 들려주세요.</p><small id="hidden-help">막히면 대본을 다시 볼 수 있어요.</small></div></div>
    <div id="live-voice" hidden><div class="voice-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="live-voice-label" role="status">마이크 연결 중</span></div><div id="recording-feedback" hidden><span id="mic-status" role="status">마이크 연결 중</span><span id="visible-clock">00:00</span></div><p id="reading-status" class="demo-note" role="status" hidden></p>
-   <div class="practice-controls"><button id="listen-practice" class="round-control" aria-label="대본 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button><button id="listen-own" class="round-control" type="button" aria-label="내 목소리 듣기" title="내 목소리 듣기" hidden><span aria-hidden="true">🗣️</span></button><button id="save-take" class="round-control" type="button" aria-label="대본과 녹음파일 저장" title="대본과 녹음파일 저장" hidden><span aria-hidden="true">💾</span></button><button id="record" class="record-button" type="button" aria-pressed="false" data-state="ready"><span class="record-icon" aria-hidden="true">●</span><span class="record-label">시작</span></button><button id="restart" class="round-control" aria-label="처음부터 다시 연습">↺</button><button id="next-question" class="round-control" type="button" aria-label="다음 질문 건너뛰기" title="다음 질문 건너뛰기" hidden>›</button></div><p id="practice-status" role="status"></p><div id="recording-result"></div><p id="podcast-save-note" hidden>말한 뒤 🗣️로 들어보세요.</p>
+   <div class="practice-controls"><button id="listen-practice" class="round-control" aria-label="대본 듣기"><svg class="icon"><use href="#icon-sound"/></svg></button><button id="listen-own" class="round-control" type="button" aria-label="내 목소리 듣기" title="내 목소리 듣기" hidden><span aria-hidden="true">🗣️</span></button><button id="save-take" class="round-control" type="button" aria-label="대본과 녹음파일 저장" title="대본과 녹음파일 저장" hidden><span aria-hidden="true">💾</span></button><button id="record" class="record-button" type="button" aria-pressed="false" data-state="ready"><svg class="icon conversation-mic-icon" aria-hidden="true"><use href="#icon-mic"/></svg><span class="record-icon" aria-hidden="true">●</span><span class="record-label">시작</span></button><button id="restart" class="round-control" aria-label="처음부터 다시 연습">↺</button><button id="next-question" class="round-control" type="button" aria-label="다음 질문 건너뛰기" title="다음 질문 건너뛰기" hidden>›</button></div><p id="practice-status" role="status"></p><div id="recording-result"></div><p id="podcast-save-note" hidden>말한 뒤 🗣️로 들어보세요.</p>
    </div>
   </div>
   <div id="diary-panel" class="panel" hidden><div class="practice-shell diary-shell"><button id="diary-back" class="text-button">← 스튜디오로</button><span class="eyebrow">MY VOICE, DAY BY DAY</span><h1>나의 팟게스트 일기장</h1><p class="diary-intro">서툴렀던 오늘도, 나의 영어가 되는 기록.</p><p id="diary-summary" role="status"></p><p class="demo-note">💾로 선택한 대본과 녹음이 이 브라우저에 저장돼요. 다른 기기와 공유되지 않으며, 브라우저 데이터를 지우면 사라질 수 있어요. 소중한 녹음은 내려받아 보관해 주세요.</p><div id="diary-list"></div></div></div>
@@ -496,7 +544,7 @@ function updateOrbState() {
 function stopMicMeter() {
  if(meterFrame!==null)cancelAnimationFrame(meterFrame);meterFrame=null;
  meterSource?.disconnect();meterAnalyser?.disconnect();meterSource=null;meterAnalyser=null;
- $('friend-portrait').style.setProperty('--level','0');
+ $('friend-portrait').style.setProperty('--level','0');$('record').style.setProperty('--mic-level','0');
  $('studio-record').style.setProperty('--mic-level','0');$('large-studio-record').style.setProperty('--mic-level','0');
  $('mic-level-fill').style.width='0%';
  $('live-voice').classList.remove('voice-detected');
@@ -528,7 +576,7 @@ function startMicMeter(micStream) {
    if(isListening && performance.now()-lastVoiceUI>350){lastVoiceUI=performance.now();const detected=rms>.015;$('live-voice').classList.toggle('voice-detected',detected);const label=mode==='friend'?(detected?'음성 감지':'마이크 켜짐'):(detected?'목소리가 들려요':'듣고 있어요 · 편하게 말해주세요');if($('live-voice-label').textContent!==label)$('live-voice-label').textContent=label;}
    if(mode==='friend' && conversationRunning && recorder?.state==='recording' && turnDetector.observe(rms,performance.now())){stopRecording();return;}
    level=level*.65+Math.min(1,rms*8)*.35;
-   $('friend-portrait').style.setProperty('--level','0');
+   $('friend-portrait').style.setProperty('--level','0');$('record').style.setProperty('--mic-level',mode==='friend' && isListening?level.toFixed(3):'0');
    $('studio-record').style.setProperty('--mic-level',level.toFixed(3));$('large-studio-record').style.setProperty('--mic-level',level.toFixed(3));
    if(mode==='podcast' && !readingPractice){const status=rms>.015?'● 목소리 감지 중 · 녹음 중':'● 마이크 연결됨 · 녹음 중';if($('mic-status').textContent!==status)$('mic-status').textContent=status;}
    $('mic-level-fill').style.width=`${Math.round(level*100)}%`;
@@ -709,7 +757,7 @@ function updateRecordingUI() {
  $('large-studio-record-label').textContent=recordPending?'마이크 연결 중…':recordingFinalizing?'녹음 마치는 중…':active?'눌러서 녹음 마치기':'마이크를 눌러 시작';
  $('large-recording-orb').classList.toggle('is-recording',active);
  $('large-recording-orb').classList.toggle('is-pending',recordPending);
- $('listen-own').hidden=false;
+ $('listen-own').hidden=mode==='friend'?(conversationRunning || resumeAfterRecording || recordingFinalizing || !$('recording-result').querySelector('audio')):false;
  $('listen-own').disabled=recordPending || recordingFinalizing || (!(mode==='friend'?$('recording-result').querySelector('audio'):latestPracticeTake) && !active);
  $('listen-own').setAttribute('aria-pressed',String(Boolean($('recording-result').querySelector('audio') && !$('recording-result').querySelector('audio').paused)));
  $('save-take').hidden=mode!=='podcast' || !hidden;
@@ -748,6 +796,8 @@ function updateRecordingUI() {
  $('next-question').hidden=mode!=='friend' || (!conversationRunning && !conversationPaused);
  $('restart').disabled=conversationRunning || recordingFinalizing || savingTake;
  $('toggle-script').disabled = recordingFinalizing || savingTake;
+ $('friend-toggle-script').disabled=$('toggle-script').disabled;
+ $('friend-toggle-script').textContent=hidden?'대본 다시 보기':'대본 가리기';
  ['listen-practice','hear-question'].forEach(id=>$(id).disabled=conversationRunning || readingPractice || active || recordPending);
  $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady || !selectedSpeechProfile());
  $('friend-voice').disabled=conversationRunning || !selectedSpeechProfile();document.querySelectorAll('button[data-person]').forEach(button=>button.disabled=conversationRunning);
@@ -1255,4 +1305,6 @@ function hideHostingBadge(root){
 }
 hideHostingBadge(document);
 new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)hideHostingBadge(node);}).observe(document.body,{childList:true,subtree:true});
+
+$('friend-toggle-script').onclick=()=>{$('toggle-script').click();document.querySelector('.friend-settings').open=false;};
 </script></body></html>

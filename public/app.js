@@ -72,7 +72,7 @@ function updateOrbState() {
 function stopMicMeter() {
  if(meterFrame!==null)cancelAnimationFrame(meterFrame);meterFrame=null;
  meterSource?.disconnect();meterAnalyser?.disconnect();meterSource=null;meterAnalyser=null;
- $('friend-portrait').style.setProperty('--level','0');
+ $('friend-portrait').style.setProperty('--level','0');$('record').style.setProperty('--mic-level','0');
  $('studio-record').style.setProperty('--mic-level','0');$('large-studio-record').style.setProperty('--mic-level','0');
  $('mic-level-fill').style.width='0%';
  $('live-voice').classList.remove('voice-detected');
@@ -104,7 +104,7 @@ function startMicMeter(micStream) {
    if(isListening && performance.now()-lastVoiceUI>350){lastVoiceUI=performance.now();const detected=rms>.015;$('live-voice').classList.toggle('voice-detected',detected);const label=mode==='friend'?(detected?'음성 감지':'마이크 켜짐'):(detected?'목소리가 들려요':'듣고 있어요 · 편하게 말해주세요');if($('live-voice-label').textContent!==label)$('live-voice-label').textContent=label;}
    if(mode==='friend' && conversationRunning && recorder?.state==='recording' && turnDetector.observe(rms,performance.now())){stopRecording();return;}
    level=level*.65+Math.min(1,rms*8)*.35;
-   $('friend-portrait').style.setProperty('--level','0');
+   $('friend-portrait').style.setProperty('--level','0');$('record').style.setProperty('--mic-level',mode==='friend' && isListening?level.toFixed(3):'0');
    $('studio-record').style.setProperty('--mic-level',level.toFixed(3));$('large-studio-record').style.setProperty('--mic-level',level.toFixed(3));
    if(mode==='podcast' && !readingPractice){const status=rms>.015?'● 목소리 감지 중 · 녹음 중':'● 마이크 연결됨 · 녹음 중';if($('mic-status').textContent!==status)$('mic-status').textContent=status;}
    $('mic-level-fill').style.width=`${Math.round(level*100)}%`;
@@ -285,7 +285,7 @@ function updateRecordingUI() {
  $('large-studio-record-label').textContent=recordPending?'마이크 연결 중…':recordingFinalizing?'녹음 마치는 중…':active?'눌러서 녹음 마치기':'마이크를 눌러 시작';
  $('large-recording-orb').classList.toggle('is-recording',active);
  $('large-recording-orb').classList.toggle('is-pending',recordPending);
- $('listen-own').hidden=false;
+ $('listen-own').hidden=mode==='friend'?(conversationRunning || resumeAfterRecording || recordingFinalizing || !$('recording-result').querySelector('audio')):false;
  $('listen-own').disabled=recordPending || recordingFinalizing || (!(mode==='friend'?$('recording-result').querySelector('audio'):latestPracticeTake) && !active);
  $('listen-own').setAttribute('aria-pressed',String(Boolean($('recording-result').querySelector('audio') && !$('recording-result').querySelector('audio').paused)));
  $('save-take').hidden=mode!=='podcast' || !hidden;
@@ -324,6 +324,8 @@ function updateRecordingUI() {
  $('next-question').hidden=mode!=='friend' || (!conversationRunning && !conversationPaused);
  $('restart').disabled=conversationRunning || recordingFinalizing || savingTake;
  $('toggle-script').disabled = recordingFinalizing || savingTake;
+ $('friend-toggle-script').disabled=$('toggle-script').disabled;
+ $('friend-toggle-script').textContent=hidden?'대본 다시 보기':'대본 가리기';
  ['listen-practice','hear-question'].forEach(id=>$(id).disabled=conversationRunning || readingPractice || active || recordPending);
  $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady || !selectedSpeechProfile());
  $('friend-voice').disabled=conversationRunning || !selectedSpeechProfile();document.querySelectorAll('button[data-person]').forEach(button=>button.disabled=conversationRunning);
@@ -831,3 +833,5 @@ function hideHostingBadge(root){
 }
 hideHostingBadge(document);
 new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)hideHostingBadge(node);}).observe(document.body,{childList:true,subtree:true});
+
+$('friend-toggle-script').onclick=()=>{$('toggle-script').click();document.querySelector('.friend-settings').open=false;};
