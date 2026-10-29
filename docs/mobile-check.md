@@ -42,3 +42,11 @@ Replaced device synthesis with a fixed OpenAI voice catalog and shared server au
 ## 2026-10-22 explicit favorites and text resume
 
 Supersedes the earlier compact-screen automatic-save flow above. Visible script uses a small microphone and listen-English/listen-own/retry icons. Hidden script restores the large studio microphone and listen-own/save/retry icons. Only the explicit save action creates a diary pair. Unchosen audio stays in page memory; reload restores text/stage without activating recording or autoplay. Existing diary audio deletion still preserves its script. Browser checks cover these distinctions with actual controlled MediaRecorder audio; physical microphone/iOS behavior still requires testing.
+
+## 2026-10-29 minimal conversation
+
+- Default voice is selected before entry; no settings step is required. One start/stop button preserves the current question/listening phase and accepts a resume click while the preceding recorder is finalizing. The pending request can also be stopped again.
+- Removed normal connection/preparation/listening/instruction copy from the conversation screen. Only actionable errors are surfaced. AI orb changes only while the AI speaks; the user's waveform shows input energy independently. The user's most recent answer is played by the speaking-head icon, not a text button or native control panel.
+- Compact flex layout in portrait, two-column dialogue in short landscape. Tests with long question/answer content cover 320×568, 360×640, 390×844, 430×932, 768×1024 and 844×390; primary controls remain in view with internal text scrolling.
+- Native MediaRecorder/Web Audio with a controlled oscillator and WAV provider stub checks actual silence-driven auto-next, repeated and rapid stop/start, pause during a pending question, and own-answer playback. Both desktop and iPhone profiles use Chromium; this is not real iOS microphone validation.
+- Synthetic late-injected Netlify branding is hidden in the regression. The actual production badge is not present in local source and must be checked after deployment.

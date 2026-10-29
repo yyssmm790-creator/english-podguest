@@ -27,7 +27,7 @@ try{
   fail=false;await page.click('#preview-voice');await page.waitForFunction(()=>speechActive);await page.waitForFunction(()=>!listening);
   await page.locator('.friend-settings summary').click();await page.click('#record');await page.waitForFunction(()=>conversationRunning && recorder?.state==='recording');
   assert.equal(await page.locator('#friend-portrait').getAttribute('data-state'),'listening');
-  const count=requests.length;await page.click('#record');assert.equal(await page.locator('.record-label').textContent(),'이어하기');
+  const count=requests.length;await page.click('#record');assert.equal(await page.locator('.record-label').textContent(),'시작');
   await page.click('#record');await page.waitForFunction(()=>conversationRunning && recorder?.state==='recording');assert.equal(requests.length,count,'resume answer phase must not replay AI question');
   await page.click('#home');assert.equal(await page.locator('#input-panel').isVisible(),true);assert.deepEqual(errors,[]);
   console.log('PASS '+device+' common catalog/audio/cache, API failure recovery, conversation pause/resume, no device synthesis');await page.close();
