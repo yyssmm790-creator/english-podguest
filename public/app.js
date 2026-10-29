@@ -285,7 +285,7 @@ function updateRecordingUI() {
  $('large-studio-record-label').textContent=recordPending?'마이크 연결 중…':recordingFinalizing?'녹음 마치는 중…':active?'눌러서 녹음 마치기':'마이크를 눌러 시작';
  $('large-recording-orb').classList.toggle('is-recording',active);
  $('large-recording-orb').classList.toggle('is-pending',recordPending);
- $('listen-own').hidden=mode==='friend'?(conversationRunning || resumeAfterRecording || recordingFinalizing || !$('recording-result').querySelector('audio')):false;
+ $('listen-own').hidden=false;
  $('listen-own').disabled=recordPending || recordingFinalizing || (!(mode==='friend'?$('recording-result').querySelector('audio'):latestPracticeTake) && !active);
  $('listen-own').setAttribute('aria-pressed',String(Boolean($('recording-result').querySelector('audio') && !$('recording-result').querySelector('audio').paused)));
  $('save-take').hidden=mode!=='podcast' || !hidden;
