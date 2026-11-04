@@ -10,11 +10,15 @@ export class PodcastDiaryStore {
   });return this.db;
  }
  async run(mode,action){const db=await this.open();return new Promise((resolve,reject)=>{const tx=db.transaction('entries',mode);const req=action(tx.objectStore('entries'));tx.oncomplete=()=>resolve(req.result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('저장 중단'));});}
- put(entry){return this.run('readwrite',store=>store.put(entry));}
- removeAudio(id){return this.run('readwrite',store=>{
-  const request=store.get(id);
-  request.onsuccess=()=>{if(request.result)store.put({...request.result,blob:null,audioDeletedAt:Date.now()});};
-  return request;
- });}
- list(){return this.run('readonly',store=>store.getAll());}
+ put(entry){
+  if(!(entry.blob instanceof Blob) || !entry.blob.size)throw new Error('저장할 녹음이 없어요.');
+  const recording={id:entry.id,createdAt:entry.createdAt,seconds:entry.seconds,blob:entry.blob};
+  return this.run('readwrite',store=>store.put(recording));
+ }
+ remove(id){return this.run('readwrite',store=>store.delete(id));}
+ clear(){return this.run('readwrite',store=>store.clear());}
+ async list(){
+  const entries=await this.run('readonly',store=>store.getAll());
+  return entries.filter(entry=>entry.blob instanceof Blob && entry.blob.size).map(({id,createdAt,seconds,blob})=>({id,createdAt,seconds,blob}));
+ }
 }

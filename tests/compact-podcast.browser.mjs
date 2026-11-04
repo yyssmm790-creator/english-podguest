@@ -36,7 +36,7 @@ try{
  await page.waitForFunction(()=>latestPracticeTake && !recordingFinalizing);assert.equal((await page.evaluate(()=>diaryStore.list())).length,0);
  await page.evaluate(()=>{window.realDiaryPut=diaryStore.put;diaryStore.put=async()=>{throw new Error('storage full');};});await page.click('#save-take');await page.waitForFunction(()=>document.querySelector('#notice').textContent.includes('저장하지 못했어요'));assert.equal(await page.evaluate(()=>latestPracticeTake.saved),false);assert.equal((await page.evaluate(()=>diaryStore.list())).length,0);await page.evaluate(()=>{diaryStore.put=realDiaryPut;});
  await page.click('#save-take');await page.waitForFunction(()=>latestPracticeTake?.saved);
- let entries=await page.evaluate(()=>diaryStore.list());assert.equal(entries.length,1);assert.equal(entries[0].story,source);assert.equal(entries[0].level,2);assert.equal(entries[0].title,fixture.title);assert.deepEqual(entries[0].lines,fixture.levels[1].podcast.map(line=>[line.en,line.ko]));
+ let entries=await page.evaluate(()=>diaryStore.list());assert.equal(entries.length,1);assert.deepEqual(Object.keys(entries[0]).sort(),['blob','createdAt','id','seconds']);assert.ok(entries[0].seconds>0);
  await page.evaluate(()=>document.querySelector('#save-take').onclick());assert.equal((await page.evaluate(()=>diaryStore.list())).length,1,'saving twice must not duplicate the chosen take');
  await page.click('#large-studio-record');await page.waitForFunction(()=>recorder?.state==='recording');await page.waitForTimeout(1200);await page.click('#restart');await page.waitForFunction(()=>!recordingFinalizing);
  assert.equal(await page.locator('#large-studio-record').isVisible(),true);assert.equal(await page.locator('#listen-own').isDisabled(),true);assert.equal((await page.evaluate(()=>diaryStore.list())).length,1,'retry does not create a diary entry');
@@ -49,5 +49,5 @@ try{
  assert.equal(await page.evaluate(()=>examples[selected].story),source);assert.equal((await page.evaluate(()=>diaryStore.list())).length,1,'closing practice does not save audio');
  await page.click('#home .brand-en');assert.equal(await page.locator('#input-panel').isVisible(),true);assert.equal(await page.locator('#writing-area').isVisible(),false);
  await page.click('#write-tab');await page.fill('#story','다음 날 새로 적기 시작한 이야기');await page.reload({waitUntil:'domcontentloaded'});assert.equal(await page.locator('#input-panel').isVisible(),true);assert.equal(await page.locator('#story').inputValue(),'다음 날 새로 적기 시작한 이야기');await page.locator('.saved-stories summary').click();await page.click('#resume-practice');assert.equal(await page.evaluate(()=>examples[selected].story),source);
- assert.deepEqual(errors,[]);console.log('PASS read/hear without saving; restored large mic; explicit one-pair favorites; retry discards; reopen restores text only; no automatic diary writes; phone layout');
+ assert.deepEqual(errors,[]);console.log('PASS read/hear without saving; restored large mic; explicit audio-only favorites; retry discards; reopen restores text only; no automatic diary writes; phone layout');
 }finally{await browser.close();}

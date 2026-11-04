@@ -15,6 +15,7 @@ let recognition = null, voiceActive = false, listening = false, continueAfterVoi
 let audioContext = null, soundEnabled = false, musicRequested = false, musicVersion = 0;
 let cafeTrackIndex=0,musicSwitching=false;
 let speechActive = false, speechGeneration = 0, activeUtterance = null;
+let scriptReadSequence=null;
 let speechStartTimer = null, speechEndTimer = null, speechQueueTimer = null;
 const commonSpeechPlayer=new Audio(),ownVoicePlayer=new Audio();
 let ownVoiceUnlocked=false;
@@ -220,6 +221,7 @@ function showWriting(focus=false) {
 }
 $('home').onclick=event=>{event.preventDefault();showStep(0);$('writing-area').hidden=true;delete document.body.dataset.writing;};
 function stopSpeech() {
+ scriptReadSequence=null;
  finishSpeech(false);speechGeneration++; clearTimeout(speechStartTimer); clearTimeout(speechEndTimer); clearTimeout(speechQueueTimer); activeUtterance=null; speechRequest?.abort(); speechRequest=null;
  if(speechAudio){speechAudio.pause();speechAudio=null;}
  if(speechAudioURL){URL.revokeObjectURL(speechAudioURL);speechAudioURL=null;}
@@ -228,11 +230,11 @@ function stopSpeech() {
 }
 function speechProfiles(){return VOICE_CATALOG.filter(voice=>voice.gender===friendPerson);}
 function selectedSpeechProfile(){return speechProfiles().find(voice=>voice.id===$('friend-voice').value);}
-async function speak(text) {
+async function speak(text,{sequence=null}={}) {
  if(listening){stopSpeech();return false;}
  const profile=selectedSpeechProfile()||speechProfiles()[0];
- if(!profile || !cloudVoicesReady){notice('공통 AI 음성을 연결하지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.');return false;}
- stopSpeech();
+ if(!profile){notice('읽어줄 목소리를 준비하지 못했어요. 다시 눌러주세요.');return false;}
+ stopSpeech();if(sequence)scriptReadSequence=sequence;
  const generation=++speechGeneration;
  const completion=new Promise(resolve=>{speechCompletion=resolve;});
  const finish=()=>{if(generation!==speechGeneration)return;clearTimeout(speechStartTimer);clearTimeout(speechEndTimer);listening=false;speechActive=false;updateAmbience();finishSpeech(true);};
@@ -250,7 +252,7 @@ async function speak(text) {
   if(!blob){
    const response=await fetch('/api/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice:profile.id}),signal:speechRequest.signal});
    if(generation!==speechGeneration)return completion;
-   if(!response.ok){fail(response.status===429?'AI 음성 요청이 많아요. 잠시 후 다시 눌러주세요.':'공통 AI 음성을 준비하지 못했어요. 잠시 후 다시 눌러주세요.');return completion;}
+   if(!response.ok){fail(response.status===429?'AI 음성 사용량 또는 요청 한도에 도달했어요. 잠시 후 다시 시도하거나 API 사용량을 확인해 주세요.':response.status===503?'AI 음성 연결 설정을 확인해 주세요.':response.status===400?'읽어줄 문장을 준비하지 못했어요. 다시 눌러주세요.':'AI 음성을 준비하지 못했어요. 잠시 후 다시 눌러주세요.');return completion;}
    if(!response.headers.get('content-type')?.startsWith('audio/')){fail();return completion;}
    blob=await response.blob();if(generation!==speechGeneration)return completion;
    if(!blob.size){fail();return completion;}cacheSpeech(key,blob);
@@ -259,7 +261,7 @@ async function speak(text) {
   speechAudioURL=URL.createObjectURL(blob);speechAudio=commonSpeechPlayer;speechAudio.src=speechAudioURL;
   speechAudio.onended=finish;speechAudio.onerror=()=>fail();
   await speechAudio.play();if(generation!==speechGeneration)return completion;
-  commonSpeechUnlocked=true;clearTimeout(speechStartTimer);speechActive=true;updateAmbience();notice();
+  cloudVoicesReady=true;commonSpeechUnlocked=true;clearTimeout(speechStartTimer);speechActive=true;updateAmbience();notice();
   speechEndTimer=setTimeout(()=>fail('음성 재생을 잠시 마쳤어요. 다시 듣기를 눌러주세요.'),180000);
  }catch(error){if(generation===speechGeneration && error.name!=='AbortError')fail(error.name==='NotAllowedError'?'재생을 허용하려면 다시 듣기를 한 번 더 눌러주세요.':'AI 음성을 불러오지 못했어요. 연결을 확인하고 다시 눌러주세요.');}
  return completion;
@@ -290,7 +292,7 @@ function updateRecordingUI() {
  $('listen-own').setAttribute('aria-pressed',String(Boolean($('recording-result').querySelector('audio') && !$('recording-result').querySelector('audio').paused)));
  $('save-take').hidden=mode!=='podcast' || !hidden;
  $('save-take').disabled=recordPending || recordingFinalizing || savingTake || (!active && (!latestPracticeTake?.hidden || latestPracticeTake.saved));
- $('save-take').setAttribute('aria-label',latestPracticeTake?.saved?'일기장에 저장됨':'대본과 녹음파일 저장');
+ $('save-take').setAttribute('aria-label',latestPracticeTake?.saved?'일기장에 저장됨':'녹음파일 저장');
  $('listen-practice').hidden=mode==='podcast' && hidden;
  if(mode==='podcast')$('podcast-save-note').textContent=latestPracticeTake?.saved?'일기장에 저장했어요.':hidden?'마음에 들면 💾로 저장하세요.':'말한 뒤 🗣️로 들어보세요.';
  $('studio-record').disabled=recordPending || recordingFinalizing || savingTake;
@@ -328,7 +330,8 @@ function updateRecordingUI() {
  $('friend-toggle-script').disabled=$('toggle-script').disabled;
  $('friend-toggle-script').textContent=hidden?'대본 다시 보기':'가리며 말하기';
  $('friend-toggle-script').setAttribute('aria-pressed',String(hidden));
- ['listen-practice','hear-question'].forEach(id=>$(id).disabled=conversationRunning || readingPractice || active || recordPending);
+ $('listen-practice').disabled=recordPending || recordingFinalizing || savingTake || (mode==='friend' && (conversationRunning || active));
+ $('hear-question').disabled=conversationRunning || readingPractice || active || recordPending;
  $('preview-voice').disabled=conversationRunning || readingPractice || active || recordPending || (!cloudVoicesReady || !selectedSpeechProfile());
  $('friend-voice').disabled=conversationRunning || !selectedSpeechProfile();document.querySelectorAll('button[data-person]').forEach(button=>button.disabled=conversationRunning);
  $('hidden-title').textContent = recordPending ? '마이크 사용을 허용해 주세요.' : active ? '지금, 당신의 이야기를 담고 있어요.' : audioURL ? '내 목소리로 이야기를 완성했어요.' : '당신의 이야기를 들려주세요.';
@@ -436,7 +439,30 @@ document.querySelectorAll('button[data-mode]').forEach(button=>button.onclick=()
 $('back-script').onclick=()=>showStep(1);
 $('toggle-script').onclick=async()=>{if(mode==='podcast'){await finishPracticeRecording();resetAudio();}hidden=!hidden;renderPractice();};
 $('hear-question').onclick=()=>{cancelConversationResponse();speak($('question-en').textContent);};
-$('listen-practice').onclick=()=>speak(mode==='friend'?(examples[selected].answerLines || examples[selected].lines)[examples[selected].turns[turn][2]][0]:examples[selected].lines.map(l=>l[0]).join(' '));
+$('listen-practice').onclick=async()=>{
+ if(listening || scriptReadSequence){stopSpeech();return;}
+ stopSpeech();unlockCommonSpeech();
+ const sequence={};scriptReadSequence=sequence;
+ const lines=mode==='friend'?[(examples[selected].answerLines || examples[selected].lines)[examples[selected].turns[turn][2]][0]]:examples[selected].lines.map(line=>line[0]);
+ // Keep each paid request inside the speech endpoint's 3,000-character limit.
+ const chunks=[];let chunk='';
+ for(const line of lines){
+  for(let offset=0;offset<line.length;offset+=2600){
+   const part=line.slice(offset,offset+2600);
+   if(chunk && chunk.length+part.length+1>2800){chunks.push(chunk);chunk='';}
+   chunk+=(chunk?' ':'')+part;
+  }
+ }
+ if(chunk)chunks.push(chunk);
+ if(mode==='podcast')await finishPracticeRecording();
+ if(scriptReadSequence!==sequence)return;
+ $('recording-result').querySelector('audio')?.pause();
+ for(const text of chunks){
+  if(scriptReadSequence!==sequence)break;
+  if(!await speak(text,{sequence}))break;
+ }
+ if(scriptReadSequence===sequence)scriptReadSequence=null;
+};
 $('next-question').onclick=skipConversationTurn;
 $('restart').onclick=()=>{takeGeneration++;cancelRecordingSession();stopSpeech();resetAudio();turn=0;conversationComplete=false;if(mode==='friend')hidden=false;renderPractice();notice();};
 async function startRecording({session=false}={}) {
@@ -591,7 +617,6 @@ window.addEventListener('beforeunload',()=>{cancelStoryGeneration();$('cafe-musi
 
 $('studio-record').onclick=$('large-studio-record').onclick=()=>{if(recorder?.state==='recording')stopRecording();else{unlockOwnVoicePlayback();startRecording();}};
 const diaryStore=new PodcastDiaryStore();
-const unsavedTakes=new Map();
 let diaryURLs=[],diaryReturn=0,diaryVersion=0;
 function pauseDiary(){
  $('diary-list').querySelectorAll('audio').forEach(audio=>audio.pause());
@@ -618,10 +643,9 @@ $('save-take').onclick=async()=>{
  try{
   await finishPracticeRecording();const take=latestPracticeTake;
   if(!take?.hidden || take.saved)return;
-  const {hidden:stage,saved,...entry}=take;
-  entry.title=entry.title||`${new Date(entry.createdAt).toLocaleDateString('ko-KR')} 나의 이야기`;
+  const entry={id:take.id,createdAt:take.createdAt,seconds:take.seconds,blob:take.blob};
   await diaryStore.put(entry);take.saved=true;
-  notice('대본과 녹음을 한 세트로 저장했어요.');
+  notice('녹음파일을 일기장에 저장했어요.');
  }catch{notice('저장하지 못했어요. 💾를 다시 눌러주세요.');}
  finally{savingTake=false;updateRecordingUI();}
 };
@@ -630,68 +654,53 @@ document.querySelectorAll('.diary-open').forEach(button=>button.onclick=()=>{
  showStep(3);renderDiary();
 });
 $('diary-back').onclick=()=>{diaryVersion++;showStep(Math.max(0,diaryReturn));if(diaryReturn===2)renderPractice();};
+let resettingDiary=false;
+$('reset-diary').onclick=async()=>{
+ if(savingTake){notice('녹음 저장이 끝난 뒤 초기화해 주세요.');return;}
+ if(resettingDiary || !confirm('이 기기의 일기장 기록을 모두 삭제할까요? 보관한 대본은 유지돼요.'))return;
+ resettingDiary=true;$('reset-diary').disabled=true;
+ try{
+  await diaryStore.clear();pauseDiary();
+  if(latestPracticeTake?.saved)resetAudio();
+  notice('일기장을 초기화했어요.');await renderDiary();
+ }catch{notice('초기화하지 못했어요. 다시 눌러주세요.');}
+ finally{resettingDiary=false;$('reset-diary').disabled=false;}
+};
 async function renderDiary(){
  const version=++diaryVersion;
- let entries=[],failed=false;
- try{entries=await diaryStore.list();}catch{failed=true;}
+ let entries;
+ try{entries=await diaryStore.list();}
+ catch{if(version===diaryVersion)$('diary-summary').textContent='기록을 불러오지 못했어요. 다시 열어주세요.';return;}
  if(version!==diaryVersion || document.body.dataset.screen!=='diary')return;
- pauseDiary();
- const byId=new Map(entries.map(entry=>[entry.id,entry]));unsavedTakes.forEach((entry,id)=>byId.set(id,entry));
- entries=[...byId.values()].sort((a,b)=>b.createdAt-a.createdAt);
- const recordingCount=entries.filter(entry=>entry.blob instanceof Blob).length;
+ pauseDiary();entries.sort((a,b)=>b.createdAt-a.createdAt);
  const days=new Set(entries.map(entry=>new Date(entry.createdAt).toLocaleDateString('ko-KR'))).size;
- const seconds=Math.round(entries.reduce((sum,entry)=>sum+entry.seconds,0));
- $('diary-summary').textContent=entries.length?`${entries.length}개의 이야기 · 녹음 ${recordingCount}개 · ${days}일의 기록 · ${Math.floor(seconds/60)}분 ${seconds%60}초 연습했어요.`:'아직 첫 이야기를 기다리고 있어요. 스튜디오 마이크로 오늘의 목소리를 남겨보세요.';
- if(failed)$('diary-summary').textContent+=' 브라우저 저장소를 열지 못했어요. 저장된 기록을 불러오지 못할 수 있어요.';
+ const seconds=Math.round(entries.reduce((sum,entry)=>sum+(Number(entry.seconds)||0),0));
+ $('diary-summary').textContent=entries.length?`녹음 ${entries.length}개 · ${days}일의 기록 · ${Math.floor(seconds/60)}분 ${seconds%60}초`:'아직 저장한 녹음이 없어요.';
  $('diary-list').replaceChildren();
  for(const entry of entries){
   const card=document.createElement('article');card.className='diary-entry';
-  const date=document.createElement('small');date.textContent=new Date(entry.createdAt).toLocaleString('ko-KR')+` · ${Math.floor(entry.seconds/60)}분 ${Math.round(entry.seconds%60)}초`+(entry.level?' · '+entry.level+'단계':'');
-  const label=document.createElement('label');label.textContent='이야기 제목';label.htmlFor=`title-${entry.id}`;
-  const input=document.createElement('input');input.id=label.htmlFor;input.value=entry.title;input.maxLength=80;
-  const save=document.createElement('button');save.className='text-button';save.textContent='제목 저장';
-  const state=document.createElement('span');state.className='save-state';state.setAttribute('role','status');state.textContent=unsavedTakes.has(entry.id)?'미저장 녹음 · 꼭 내려받아 주세요.':'일기장에 저장됨';
-  save.onclick=async()=>{
-   const title=input.value.trim();if(!title){state.textContent='제목을 입력해 주세요.';return;}
-   save.disabled=true;const renamed={...entry,title};
-   try{await diaryStore.put(renamed);Object.assign(entry,renamed);unsavedTakes.delete(entry.id);state.textContent='제목을 저장했어요.';}
-   catch{if(unsavedTakes.has(entry.id)){Object.assign(entry,renamed);unsavedTakes.set(entry.id,entry);}state.textContent=entry.blob instanceof Blob?'저장하지 못했어요. 녹음을 내려받아 주세요.':'제목을 저장하지 못했어요. 다시 시도해 주세요.';}
-   finally{save.disabled=false;}
+  const dateText=new Date(entry.createdAt).toLocaleString('ko-KR');
+  const date=document.createElement('time');date.dateTime=new Date(entry.createdAt).toISOString();date.textContent=dateText;
+  const duration=document.createElement('small');duration.textContent=`${Math.floor(entry.seconds/60)}분 ${Math.round(entry.seconds%60)}초`;
+  const state=document.createElement('span');state.className='save-state';state.setAttribute('role','status');
+  const url=URL.createObjectURL(entry.blob);diaryURLs.push(url);
+  const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.src=url;audio.setAttribute('controlslist','nodownload noplaybackrate');audio.setAttribute('aria-label',`${dateText} 녹음 듣기`);
+  audio.onplay=()=>{$('diary-list').querySelectorAll('audio').forEach(other=>{if(other!==audio)other.pause();});stopSpeech();playbackActive=true;updateAmbience();};
+  const ended=()=>{playbackActive=!![...$('diary-list').querySelectorAll('audio')].find(other=>!other.paused);updateAmbience();};audio.onpause=ended;audio.onended=ended;
+  const download=document.createElement('a');download.href=url;download.textContent='다운로드';download.download=`podguest-${new Date(entry.createdAt).toISOString().replace(/[:.]/g,'-')}.${entry.blob.type.includes('mp4')?'m4a':entry.blob.type.includes('ogg')?'ogg':'webm'}`;
+  const remove=document.createElement('button');remove.type='button';remove.className='text-button delete-recording';remove.textContent='녹음 삭제';remove.setAttribute('aria-label',`${dateText} 녹음 삭제`);
+  remove.onclick=async()=>{
+   remove.disabled=true;
+   try{
+    await diaryStore.remove(entry.id);
+    audio.pause();audio.removeAttribute('src');audio.load();
+    if(latestPracticeTake?.id===entry.id)resetAudio();
+    notice('녹음을 삭제했어요.');await renderDiary();
+   }catch{state.textContent='녹음을 삭제하지 못했어요. 다시 눌러주세요.';}
+   finally{remove.disabled=false;}
   };
-  card.append(date,label,input,save,state);
-  if(entry.blob instanceof Blob){
-   const url=URL.createObjectURL(entry.blob);diaryURLs.push(url);
-   const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.src=url;
-   audio.setAttribute('controlslist','nodownload noplaybackrate');
-   audio.setAttribute('aria-label',`${entry.title} 녹음 듣기`);
-   audio.onplay=()=>{$('diary-list').querySelectorAll('audio').forEach(other=>{if(other!==audio)other.pause();});stopSpeech();playbackActive=true;updateAmbience();};
-   const ended=()=>{playbackActive=!![...$('diary-list').querySelectorAll('audio')].find(other=>!other.paused);updateAmbience();};audio.onpause=ended;audio.onended=ended;
-   const download=document.createElement('a');download.href=url;download.textContent='녹음 내려받기 ↓';download.download=`${entry.title}.${entry.blob.type.includes('mp4')?'m4a':'webm'}`;
-   download.onclick=()=>{download.download=`${input.value.trim()||entry.title}.${entry.blob.type.includes('mp4')?'m4a':'webm'}`;};
-   const remove=document.createElement('button');remove.type='button';remove.className='text-button delete-recording';remove.textContent='삭제';remove.setAttribute('aria-label',`${entry.title} 녹음파일만 삭제`);
-   remove.onclick=async()=>{
-    remove.disabled=true;save.disabled=true;
-    try{
-     if(unsavedTakes.has(entry.id)){
-      const preserved={...entry,blob:null,audioDeletedAt:Date.now()};
-      // An unsaved recording can still be removed when browser storage is unavailable.
-      try{await diaryStore.put(preserved);unsavedTakes.delete(entry.id);}catch{unsavedTakes.set(entry.id,preserved);}
-     }else await diaryStore.removeAudio(entry.id);
-     audio.pause();audio.removeAttribute('src');audio.load();URL.revokeObjectURL(url);if(latestPracticeTake?.id===entry.id)resetAudio();
-     notice('녹음파일을 삭제했어요. 이야기와 대본은 그대로 남아 있어요.');
-     await renderDiary();
-    }catch{state.textContent='녹음파일을 삭제하지 못했어요. 다시 눌러주세요.';}
-    finally{remove.disabled=false;save.disabled=false;}
-   };
-   const actions=document.createElement('div');actions.className='recording-actions';actions.append(download,remove);
-   card.append(audio,actions);
-  }else{
-   const removed=document.createElement('p');removed.className='demo-note';removed.textContent='녹음파일을 삭제했어요. 이야기와 대본은 다시 볼 수 있어요.';card.append(removed);
-   state.textContent=unsavedTakes.has(entry.id)?'대본 미저장 · 이 창을 닫으면 사라져요.':'대본이 저장되어 있어요.';
-  }
-  const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='그날의 대본 보기';details.append(summary);
-  const story=document.createElement('p');story.textContent=entry.story||'';details.append(story);const script=document.createElement('div');fillLines(script,entry.lines||[]);details.append(script);
-  card.append(details);$('diary-list').append(card);
+  const actions=document.createElement('div');actions.className='recording-actions';actions.append(download,remove);
+  card.append(date,duration,audio,actions,state);$('diary-list').append(card);
  }
 }
 
