@@ -6,3 +6,6 @@ html = html.replace('@@STYLES@@', () => css).replace('@@SCRIPT@@', () => script)
 html=html.replace('@@MUSIC@@',()=> './audio/cafe-acoustic-01.mp3');
 await writeFile('public/index.html', html);
 console.log('Built self-contained studio: public/index.html');
+
+const approved=await readFile('design/integrated-preview.html','utf8');
+await writeFile('public/approved-preview.html',approved);
