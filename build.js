@@ -9,3 +9,7 @@ console.log('Built self-contained studio: public/index.html');
 
 const approved=await readFile('design/integrated-preview.html','utf8');
 await writeFile('public/approved-preview.html',approved);
+
+const marker='data:image/png;base64,';
+const start=approved.indexOf(marker);
+if(start!==-1){const tail=approved.slice(start+marker.length);const encoded=tail.split(')')[0];await writeFile('public/my-podguest-share.png',Buffer.from(encoded,'base64'));}
