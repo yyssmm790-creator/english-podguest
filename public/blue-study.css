@@ -35,3 +35,35 @@ body[data-mode=podcast] #podcast-save-note{color:#637aa8}
  body[data-mode=podcast] #practice-script .script-line p{font-size:clamp(27px,7.5vw,36px)!important}
  body[data-mode=podcast] .practice-shell{padding:13px!important}
 }
+
+/* Rebuilt home: a clean, focused blue learning dashboard. */
+body[data-screen=input] main{display:block;max-width:1000px;margin:0 auto;padding:24px 20px 60px}
+body[data-screen=input] .studio{display:none!important}
+body[data-screen=input] .workspace{position:relative!important;inset:auto!important;transform:none!important;width:100%!important;max-width:100%!important;min-height:0!important;background:transparent!important;box-shadow:none!important;border:0!important}
+body[data-screen=input] #input-panel{display:flex;flex-direction:column;align-items:stretch;max-width:760px;margin:0 auto;min-height:0;padding:0!important}
+body[data-screen=input] #input-panel .diary-open{align-self:flex-end;color:#2355f6;font-size:13px;font-weight:800}
+body[data-screen=input] .input-heading{text-align:left!important;padding:12px 0 18px!important;margin:0!important}
+body[data-screen=input] .input-heading .eyebrow{font-size:12px!important;letter-spacing:.2px;color:#168653!important}
+body[data-screen=input] .input-heading h1{font-size:clamp(24px,4vw,34px)!important;line-height:1.3!important;letter-spacing:-.7px;margin:10px 0!important}
+body[data-screen=input] .input-heading:after{content:'내 하루가, 나의 영어로';display:block;color:#168653;font-size:14px;font-weight:800;margin-top:10px}
+body[data-screen=input] .input-dock{display:flex!important;flex-direction:column!important;gap:12px!important;background:#e4edff!important;border:1px solid #d1e0ff;border-radius:22px;padding:20px!important;box-shadow:0 8px 30px #123d8d0a}
+body[data-screen=input] #writing-area{background:#fff!important;border-radius:18px!important;box-shadow:none!important}
+body[data-screen=input] #voice-tab{background:#2455f5!important;color:#fff!important;border-radius:18px!important;border:0!important;box-shadow:0 8px 20px #2455f52b!important;min-height:88px!important;font-weight:800!important}
+body[data-screen=input] #voice-tab .icon{color:#fff!important}
+body[data-screen=input] #write-story{background:#fff!important;color:#2455f5!important;border:2px solid #c8daff!important;border-radius:16px!important;min-height:58px!important;font-size:15px!important;font-weight:800!important;margin:0!important}
+body[data-screen=input] #write-story>span:first-child{display:none!important}
+body[data-screen=input] #write-tab{color:#2355f6!important;background:transparent!important;border:0!important;box-shadow:none!important}
+body[data-screen=input] .saved-stories{margin-top:12px!important;background:#fff;border-radius:15px;padding:10px 14px}
+body[data-screen=input] .saved-stories summary{color:#102457;font-weight:800}
+body[data-screen=input] .examples{background:#fff;border-radius:15px;padding:6px 12px}
+body[data-screen=input] .examples>summary{display:block!important;font-size:13px;font-weight:700;color:#45628f}
+body[data-screen=input] #story{font-size:18px!important;line-height:1.7}
+body[data-screen=input] .level-options button{border-radius:12px}
+body[data-screen=input] #make-script{min-height:54px;font-size:16px}
+@media(max-width:760px){
+ body[data-screen=input] main{padding:10px 12px 36px!important}
+ body[data-screen=input] #input-panel{padding:0!important}
+ body[data-screen=input] .input-dock{padding:14px!important}
+ body[data-screen=input] .input-heading h1{font-size:27px!important}
+ body[data-screen=input] #voice-tab{min-height:82px!important}
+}
