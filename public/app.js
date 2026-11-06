@@ -203,7 +203,8 @@ function skipConversationTurn() {
  if(conversationRunning)playSessionQuestion(conversationEpoch);
 }
 function updateAmbience() {
- const music=$('cafe-music');music.volume=.6;music.muted=false;
+ const music=$('cafe-music');music.volume=.14;music.muted=false;
+ const bgm=$('podcast-bgm-toggle');if(bgm){bgm.textContent=musicRequested?'ON':'OFF';bgm.setAttribute('aria-pressed',String(musicRequested));}
  $('sound-state').textContent=soundEnabled?'ON':musicRequested?'준비 중':'OFF';
  $('sound').setAttribute('aria-pressed',String(musicRequested));
  $('sound').setAttribute('aria-label',musicRequested?'카페 음악 끄기':'카페 음악 켜기');
@@ -346,6 +347,7 @@ function cancelRecordingSession() {
 function showStep(step) {
  cancelStoryGeneration(); pauseDiary(); stopSpeech(); cancelRecordingSession(); $('recording-result').querySelector('audio')?.pause(); continueAfterVoice=false; if (recognition) recognition.stop(); notice();
  document.body.dataset.screen=['input','choice','practice','diary'][step];
+ if(step!==2 || mode!=='podcast'){const music=$('cafe-music');musicRequested=false;soundEnabled=false;music.pause();updateAmbience();}
  ['input-panel','script-panel','practice-panel','diary-panel'].forEach((id,i) => $(id).hidden = i !== step);
  document.querySelectorAll('[data-step]').forEach((el,i) => { el.classList.toggle('active', i === step); if (i === step) el.setAttribute('aria-current','step'); else el.removeAttribute('aria-current'); });
  window.scrollTo({top:0,behavior:'instant'});
@@ -862,3 +864,16 @@ hideHostingBadge(document);
 new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)hideHostingBadge(node);}).observe(document.body,{childList:true,subtree:true});
 
 $('friend-toggle-script').onclick=()=>{$('toggle-script').click();document.querySelector('.friend-settings').open=false;};
+
+/* Blue home dashboard navigation; reuse the original application workflows. */
+document.querySelectorAll('[data-home-action]').forEach(button=>button.addEventListener('click',()=>{
+ const action=button.dataset.homeAction;
+ if(action==='write'){showStep(0);showWriting(true);$('story').scrollIntoView({block:'center',behavior:'smooth'});return;}
+ if(action==='diary'){document.querySelector('#input-panel .diary-open')?.click();return;}
+ if(!selected || !examples[selected]){showStep(0);showWriting(true);$('story').scrollIntoView({block:'center',behavior:'smooth'});notice('먼저 이야기를 입력해 영어 대본을 만들어 주세요.');return;}
+ showStep(1);
+ if(action==='podcast')document.querySelector('[data-mode="podcast"]')?.click();
+}));
+$('podcast-bgm-toggle')?.addEventListener('click',()=>{
+ if(document.body.dataset.screen==='practice' && mode==='podcast')$('sound').click();
+});
