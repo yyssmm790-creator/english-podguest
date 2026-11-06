@@ -1,0 +1,37 @@
+/* Speak-inspired blue study layout; original microphone silhouette is preserved. */
+:root{--cream:#f4f7fd;--ink:#102457;--olive:#2355f6;--muted:#667da4;--line:#d9e6ff}
+body{background:#f4f7fd;color:#102457;font-family:'DM Sans','Noto Sans KR',sans-serif}
+header{background:#fff;border-bottom:1px solid #e1e9f8}
+.brand{font-size:16px!important;letter-spacing:-.3px!important;color:#168653!important}
+.brand-dot,.header-note{color:#168653!important}
+.eyebrow,.header-note{color:#168653!important;font-weight:700}
+.input-heading h1,.choice-card h1{font-weight:800;color:#102457}
+#input-panel .input-heading .eyebrow{font-size:11px}
+#input-panel .input-card,#script-panel .choice-card,.practice-shell,.diary-shell{background:#fff;border-color:#dce7fa;box-shadow:0 10px 35px #1745a80b}
+.primary,.write-button,#generate-story,.resume-practice{background:#2455f5;color:#fff;border-radius:14px;font-weight:800}
+#input-panel textarea{border-color:#c9dcff;background:#f9fbff;font-size:17px}
+body[data-screen=practice][data-mode=podcast] .practice-shell{background:#e2edff;border-radius:22px}
+body[data-mode=podcast] .practice-paper{background:transparent}
+body[data-mode=podcast] #practice-script .script-line{background:#fff;border:0;border-radius:18px;padding:20px 18px;margin-bottom:12px;box-shadow:0 2px 8px #1a4ab009}
+body[data-mode=podcast] #practice-script .script-line p{font-size:clamp(29px,4.2vw,43px)!important;line-height:1.32!important;font-weight:800!important;letter-spacing:-.7px!important;color:#102457}
+body[data-mode=podcast] #practice-script .script-line small{font-size:13px;color:#7185aa}
+body[data-mode=podcast] .practice-top{background:#e2edff!important;border-color:#ccddff!important}
+body[data-mode=podcast] .paper-heading{color:#1752ce;font-weight:800}
+body[data-mode=podcast] #toggle-script,body[data-mode=podcast] #listen-practice,body[data-mode=podcast] #listen-own{background:#2455f5;color:#fff;border:0;border-radius:13px;font-weight:800}
+body[data-mode=podcast] .round-control{background:#2455f5;color:#fff;border-color:#2455f5}
+body[data-mode=podcast] #hidden-script{background:#fff;border-radius:20px;padding:22px 12px}
+body[data-mode=podcast] #large-studio-record{color:#2455f5}
+/* Preserve the existing .recording-orb shape, dimensions and grille. */
+body[data-mode=podcast] #large-studio-record .recording-orb{filter:drop-shadow(0 10px 16px #2054df24)}
+body[data-mode=podcast] #podcast-save-note{color:#637aa8}
+.diary-shell h1{font-weight:800;color:#102457}
+.diary-entry{background:#fff;border-color:#dae7ff}
+.diary-entry time{font-weight:800;color:#102457}
+.diary-entry audio{max-width:100%}
+.delete-recording{color:#b13243}
+@media(max-width:760px){
+ header{background:#fff}
+ body[data-mode=podcast] #practice-script .script-line{padding:19px 15px}
+ body[data-mode=podcast] #practice-script .script-line p{font-size:clamp(27px,7.5vw,36px)!important}
+ body[data-mode=podcast] .practice-shell{padding:13px!important}
+}
