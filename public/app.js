@@ -360,6 +360,7 @@ function resetAudio() { latestPracticeTake=null;const old=$('recording-result').
 function renderPractice() {
  const data=examples[selected];
  document.body.dataset.mode=mode;document.body.dataset.podcastStage=hidden?'hidden':'visible';
+ const allStory=$('all-story-podcast');if(allStory)allStory.hidden=mode!=='podcast';
  $('friend-question').hidden = mode !== 'friend';
  $('friend-person').hidden = mode !== 'friend';
  $('next-question').hidden = mode !== 'friend' || (!conversationRunning && !conversationPaused);
@@ -876,4 +877,11 @@ document.querySelectorAll('[data-home-action]').forEach(button=>button.addEventL
 }));
 $('podcast-bgm-toggle')?.addEventListener('click',()=>{
  if(document.body.dataset.screen==='practice' && mode==='podcast')$('sound').click();
+});
+
+$('all-story-podcast')?.addEventListener('click',async()=>{
+ if(mode!=='podcast')return;
+ if(!hidden){hidden=true;renderPractice();}
+ const mic=$('large-studio-record');
+ mic?.scrollIntoView({block:'center',behavior:'smooth'});
 });
