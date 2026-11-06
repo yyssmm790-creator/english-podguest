@@ -518,6 +518,13 @@ async function startRecording({session=false}={}) {
    audio.onpause=endPlayback;audio.onended=endPlayback;
    audio.controls=!session;$('recording-result').replaceChildren(...(session?[audio]:[play,audio]));
    if(!session)$('practice-status').textContent='내 이야기를 영어로 말했어요. 내 목소리를 들어볼까요?';
+   // Only a completed hidden-script podcast take is kept in the growth diary.
+   if(!session && takeHidden && latestPracticeTake?.id===takeId){
+    const completedTake=latestPracticeTake;
+    diaryStore.put({id:completedTake.id,createdAt:completedTake.createdAt,seconds:completedTake.seconds,blob:completedTake.blob})
+     .then(()=>{completedTake.saved=true;updateRecordingUI();notice('나의 성장 기록에 저장했어요.');})
+     .catch(()=>notice('자동 저장하지 못했어요. 저장 버튼을 다시 눌러주세요.'));
+   }
    updateRecordingUI();updateAmbience();
    if(session && conversationRunning && sessionEpoch===conversationEpoch && turnDetector.hasSpeech)queueConversationResponse();
   };
