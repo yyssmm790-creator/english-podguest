@@ -673,22 +673,18 @@ async function renderDiary(){
  catch{if(version===diaryVersion)$('diary-summary').textContent='기록을 불러오지 못했어요. 다시 열어주세요.';return;}
  if(version!==diaryVersion || document.body.dataset.screen!=='diary')return;
  pauseDiary();entries.sort((a,b)=>b.createdAt-a.createdAt);
- const days=new Set(entries.map(entry=>new Date(entry.createdAt).toLocaleDateString('ko-KR'))).size;
- const seconds=Math.round(entries.reduce((sum,entry)=>sum+(Number(entry.seconds)||0),0));
- $('diary-summary').textContent=entries.length?`녹음 ${entries.length}개 · ${days}일의 기록 · ${Math.floor(seconds/60)}분 ${seconds%60}초`:'아직 저장한 녹음이 없어요.';
+ $('diary-summary').textContent=entries.length?'':'아직 저장한 녹음이 없어요.';
  $('diary-list').replaceChildren();
  for(const entry of entries){
   const card=document.createElement('article');card.className='diary-entry';
-  const dateText=new Date(entry.createdAt).toLocaleString('ko-KR');
+  const dateText=new Date(entry.createdAt).toLocaleDateString('ko-KR');
   const date=document.createElement('time');date.dateTime=new Date(entry.createdAt).toISOString();date.textContent=dateText;
-  const duration=document.createElement('small');duration.textContent=`${Math.floor(entry.seconds/60)}분 ${Math.round(entry.seconds%60)}초`;
   const state=document.createElement('span');state.className='save-state';state.setAttribute('role','status');
   const url=URL.createObjectURL(entry.blob);diaryURLs.push(url);
   const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.src=url;audio.setAttribute('controlslist','nodownload noplaybackrate');audio.setAttribute('aria-label',`${dateText} 녹음 듣기`);
   audio.onplay=()=>{$('diary-list').querySelectorAll('audio').forEach(other=>{if(other!==audio)other.pause();});stopSpeech();playbackActive=true;updateAmbience();};
   const ended=()=>{playbackActive=!![...$('diary-list').querySelectorAll('audio')].find(other=>!other.paused);updateAmbience();};audio.onpause=ended;audio.onended=ended;
-  const download=document.createElement('a');download.href=url;download.textContent='다운로드';download.download=`podguest-${new Date(entry.createdAt).toISOString().replace(/[:.]/g,'-')}.${entry.blob.type.includes('mp4')?'m4a':entry.blob.type.includes('ogg')?'ogg':'webm'}`;
-  const remove=document.createElement('button');remove.type='button';remove.className='text-button delete-recording';remove.textContent='녹음 삭제';remove.setAttribute('aria-label',`${dateText} 녹음 삭제`);
+  const remove=document.createElement('button');remove.type='button';remove.className='text-button delete-recording';remove.textContent='🗑';remove.title='녹음 삭제';remove.setAttribute('aria-label',`${dateText} 녹음 삭제`);
   remove.onclick=async()=>{
    remove.disabled=true;
    try{
@@ -699,8 +695,8 @@ async function renderDiary(){
    }catch{state.textContent='녹음을 삭제하지 못했어요. 다시 눌러주세요.';}
    finally{remove.disabled=false;}
   };
-  const actions=document.createElement('div');actions.className='recording-actions';actions.append(download,remove);
-  card.append(date,duration,audio,actions,state);$('diary-list').append(card);
+  const actions=document.createElement('div');actions.className='recording-actions';actions.append(remove);
+  card.append(date,audio,actions,state);$('diary-list').append(card);
  }
 }
 
