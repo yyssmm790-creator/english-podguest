@@ -21,9 +21,23 @@ const sentences=[['Today, I went on a fall picnic with my kids.','오늘 아이�
 /* Integration layer: preserve the approved preview's visual design. */
 let generatedStory=null,selectedLevel=1,storyBusy=false,showPodcastScript=true;
 const originalGo=go;
-go=function(page){if(page==='podcast' && !generatedStory){alert('먼저 내 이야기를 영어로 만들어 주세요.');originalGo('write');return}originalGo(page);if(page==='podcast')updatePodcastPrompt();};
+function recoverGeneratedStory(){
+if(generatedStory?.lines?.length)return true;
+try{
+const saved=JSON.parse(localStorage.getItem('my-podguest-story-v2')||'null');
+if(saved?.lines?.length){generatedStory=saved;sentences.splice(0,sentences.length,...saved.lines);if(saved.source)$('story').value=saved.source;return true;}
+if(saved?.levels?.length){generatedStory=saved;const level=saved.levels.find(x=>x.level===selectedLevel)||saved.levels[0];const lines=(level?.podcast||[]).filter(x=>x.en).map(x=>[x.en,x.ko||'']);if(lines.length){saved.lines=lines;sentences.splice(0,sentences.length,...lines);if(saved.source)$('story').value=saved.source;return true;}}
+}catch(e){console.warn('Saved story could not be restored',e)}
+return false;
+}
+go=function(page){
+if(page==='podcast'&&!recoverGeneratedStory()){alert('먼저 한국어 이야기를 영어 대본으로 만들어 주세요.');originalGo('write');return;}
+if(page==='practice')recoverGeneratedStory();
+originalGo(page);
+if(page==='podcast')updatePodcastPrompt();
+};
 function shareMyPodguest(){const url='https://my-english-podguest.netlify.app/';if(navigator.share){navigator.share({title:'My-팟게스트 | 내 하루가 나의 영어로',text:'내 이야기를 영어로 만들고 듣고 말하며 나만의 팟캐스트를 완성해요.',url}).catch(()=>{});}else if(navigator.clipboard){navigator.clipboard.writeText(url).then(()=>alert('사이트 주소를 복사했어요!')).catch(()=>prompt('사이트 주소를 복사하세요',url));}else prompt('사이트 주소를 복사하세요',url);}
-function restoreStory(){try{let data=JSON.parse(localStorage.getItem('my-podguest-story-v2')||'null');if(data&&Array.isArray(data.lines)&&data.lines.length){generatedStory=data;sentences.splice(0,sentences.length,...data.lines);$('story').value=data.source||'';}}catch{}}
+function restoreStory(){try{let data=JSON.parse(localStorage.getItem('my-podguest-story-v2')||'null');if(data&&Array.isArray(data.lines)&&data.lines.length){generatedStory=data;sentences.splice(0,sentences.length,...data.lines);$('story').value=data.source||'';}else if(data?.levels?.length){generatedStory=data;recoverGeneratedStory();}}catch{}}
 restoreStory();
 prepare=async function(){const source=$('story').value.trim();if(!source){alert('오늘의 이야기를 먼저 적어주세요.');return}if(storyBusy)return;storyBusy=true;let button=document.querySelector('#write .action');if(button){button.disabled=true;button.textContent='영어 대본을 만들고 있어요…';}try{let response=await fetch('/api/story',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({story:source})});let data=await response.json();if(!response.ok)throw Error(data.error||'영어 대본을 만들지 못했어요.');if(!Array.isArray(data.levels))throw Error('영어 대본 형식을 확인할 수 없어요.');generatedStory={source,levels:data.levels,lines:[]};applyLevel(1);localStorage.setItem('my-podguest-story-v2',JSON.stringify(generatedStory));idx=0;originalGo('practice');}catch(e){alert('영어 변환에 실패했어요. 잠시 후 다시 시도해 주세요.\n'+e.message);}finally{storyBusy=false;if(button){button.disabled=false;button.textContent='✨ 내 이야기로 영어 만들기 ❯';}}};
 function applyLevel(level){if(!generatedStory?.levels)return;let item=generatedStory.levels.find(x=>x.level===level);if(!item)return;selectedLevel=level;generatedStory.lines=item.podcast.map(x=>[x.en,x.ko]);sentences.splice(0,sentences.length,...generatedStory.lines);idx=0;draw();document.querySelectorAll('.story-level-select button').forEach(b=>b.classList.toggle('selected',Number(b.dataset.level)===level));try{localStorage.setItem('my-podguest-story-v2',JSON.stringify(generatedStory));}catch{}}
