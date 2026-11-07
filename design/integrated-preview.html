@@ -31,7 +31,13 @@ if(saved?.levels?.length){generatedStory=saved;const level=saved.levels.find(x=>
 return false;
 }
 go=function(page){
-if(page==='podcast'&&!recoverGeneratedStory()){alert('먼저 한국어 이야기를 영어 대본으로 만들어 주세요.');originalGo('write');return;}
+if(page==='podcast'&&!recoverGeneratedStory()){
+// A sentence-practice session already has usable English lines, even if the
+// saved generatedStory metadata is missing (older sessions or sample practice).
+const usable=Array.isArray(sentences)&&sentences.length>0&&sentences.some(line=>Array.isArray(line)&&String(line[0]||'').trim());
+if(usable){generatedStory={source:$('story')?.value||'',levels:[],lines:sentences.map(line=>[line[0],line[1]||''])};try{localStorage.setItem('my-podguest-story-v2',JSON.stringify(generatedStory))}catch{}}
+else{alert('먼저 한국어 이야기를 영어 대본으로 만들어 주세요.');originalGo('write');return;}
+}
 if(page==='practice')recoverGeneratedStory();
 originalGo(page);
 if(page==='podcast')updatePodcastPrompt();
