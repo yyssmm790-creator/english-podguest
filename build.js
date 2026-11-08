@@ -1,3 +1,4 @@
+import { Script } from 'node:vm';
 import { readFile, writeFile } from 'node:fs/promises';
 let html = await readFile('public/index.template.html', 'utf8');
 const css = await readFile('public/style.css', 'utf8') + '\n' + await readFile('public/orb.css', 'utf8') + '\n' + await readFile('public/diary.css', 'utf8') + '\n' + await readFile('public/blue-study.css', 'utf8');
@@ -8,6 +9,10 @@ await writeFile('public/legacy-studio.html', html);
 console.log('Backed up the previous studio at public/legacy-studio.html');
 
 const approved=await readFile('design/integrated-preview.html','utf8');
+// Reject syntax errors in the actual homepage before publishing it.
+for (const [index, match] of [...approved.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].entries()) {
+  new Script(match[1], {filename: `integrated-preview-script-${index}.js`});
+}
 await writeFile('public/approved-preview.html',approved);
 await writeFile('public/index.html',approved);
 console.log('Built the user-approved My-Podguest homepage.');
