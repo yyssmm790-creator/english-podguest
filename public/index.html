@@ -129,6 +129,42 @@ if(Recognition){let recognition=new Recognition();practiceRecognition=recognitio
 else{if(practiceStatus)practiceStatus.setAttribute('aria-label','녹음 중: 마이크를 다시 누르면 종료');}
 }catch(e){practiceIsRecording=false;practiceRelease();if(practiceStatus)practiceStatus.textContent='마이크 권한을 확인해 주세요.';}
 };
+// Play the existing server voice consistently across phones and computers.
+const practiceNativeAudio=new Audio();practiceNativeAudio.controls=true;practiceNativeAudio.preload='auto';practiceNativeAudio.setAttribute('playsinline','');practiceNativeAudio.setAttribute('aria-label','원어민 문장 듣기');practiceNativeAudio.style.cssText='width:100%;max-width:340px';
+const nativeVoiceBox=document.createElement('div');nativeVoiceBox.style.cssText='text-align:center;margin:8px auto';nativeVoiceBox.hidden=true;
+const nativeVoiceStatus=document.createElement('p');nativeVoiceStatus.setAttribute('role','status');nativeVoiceStatus.style.cssText='font-size:13px;margin:6px';nativeVoiceBox.append(nativeVoiceStatus,practiceNativeAudio);document.querySelector('#practice .icons').after(nativeVoiceBox);
+let nativeVoiceRequest=null,nativeVoiceGeneration=0,nativeVoiceUrl=null,nativeVoiceText='';
+function stopPracticeNativeVoice(){nativeVoiceGeneration++;nativeVoiceRequest?.abort();nativeVoiceRequest=null;practiceNativeAudio.pause();nativeVoiceBox.hidden=true;document.querySelector('#practice .circle').classList.remove('on')}
+practiceNativeAudio.onended=()=>document.querySelector('#practice .circle').classList.remove('on');
+practiceNativeAudio.onplay=()=>document.querySelector('#practice .circle').classList.add('on');
+practiceNativeAudio.onpause=()=>document.querySelector('#practice .circle').classList.remove('on');
+speak=async function(){
+const text=sentences[idx]?.[0];if(!text)return;
+if(nativeVoiceRequest||!practiceNativeAudio.paused){stopPracticeNativeVoice();return}
+const generation=++nativeVoiceGeneration;nativeVoiceBox.hidden=false;
+try{
+if(nativeVoiceText!==text||!nativeVoiceUrl){
+nativeVoiceStatus.textContent='원어민 음성을 준비하고 있어요…';practiceNativeAudio.hidden=true;
+// Start the media element within the tap gesture for mobile browsers.
+practiceNativeAudio.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+practiceNativeAudio.play().catch(()=>{});
+const controller=new AbortController();nativeVoiceRequest=controller;
+const response=await fetch('/api/speech',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice:'nova'}),signal:controller.signal});
+if(!response.ok)throw Error('voice_request_failed');
+const blob=await response.blob();if(!blob.size||!blob.type.startsWith('audio/'))throw Error('invalid_audio');
+if(generation!==nativeVoiceGeneration)return;
+if(nativeVoiceUrl)URL.revokeObjectURL(nativeVoiceUrl);nativeVoiceUrl=URL.createObjectURL(blob);nativeVoiceText=text;practiceNativeAudio.src=nativeVoiceUrl;
+}
+if(generation!==nativeVoiceGeneration)return;
+practiceNativeAudio.hidden=false;if(practiceNativeAudio.src!==nativeVoiceUrl)practiceNativeAudio.src=nativeVoiceUrl;practiceNativeAudio.currentTime=0;nativeVoiceStatus.textContent='원어민 문장 듣기';
+try{await practiceNativeAudio.play()}catch{nativeVoiceStatus.textContent='아래 ▶를 눌러 원어민 음성을 들어보세요.'}
+}catch(error){if(generation===nativeVoiceGeneration&&error.name!=='AbortError'){practiceNativeAudio.pause();practiceNativeAudio.hidden=true;nativeVoiceStatus.textContent='음성을 불러오지 못했어요. 🔊를 다시 눌러주세요.'}}
+finally{if(generation===nativeVoiceGeneration)nativeVoiceRequest=null}
+};
+const goBeforeNativeVoice=go;go=function(page){if(page!=='practice')stopPracticeNativeVoice();return goBeforeNativeVoice(page)};
+const moveBeforeNativeVoice=move;move=function(n){stopPracticeNativeVoice();return moveBeforeNativeVoice(n)};
+const levelBeforeNativeVoice=applyLevel;applyLevel=function(level){stopPracticeNativeVoice();return levelBeforeNativeVoice(level)};
+
 const storeName='podguest-diary',storeKey='entries';
 function openRecordDB(){return new Promise((resolve,reject)=>{const request=indexedDB.open(storeName,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(storeKey))request.result.createObjectStore(storeKey,{keyPath:'id'})};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
 async function withRecordDB(mode,callback){let db=await openRecordDB();return new Promise((resolve,reject)=>{let tx=db.transaction(storeKey,mode),request=callback(tx.objectStore(storeKey));tx.oncomplete=()=>{resolve(request.result);db.close()};tx.onerror=()=>reject(tx.error)})}
