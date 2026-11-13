@@ -8,7 +8,7 @@ html=html.replace('@@MUSIC@@',()=> './audio/cafe-acoustic-01.mp3');
 await writeFile('public/legacy-studio.html', html);
 console.log('Backed up the previous studio at public/legacy-studio.html');
 
-const approved=await readFile('design/integrated-preview.html','utf8');
+const approved=await readFile('design/shadowing.html','utf8');
 // Reject syntax errors in the actual homepage before publishing it.
 for (const [index, match] of [...approved.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].entries()) {
   new Script(match[1], {filename: `integrated-preview-script-${index}.js`});
@@ -18,8 +18,9 @@ await writeFile('public/index.html',approved);
 console.log('Built the user-approved My-Podguest homepage.');
 
 const marker='data:image/png;base64,';
-const start=approved.indexOf(marker);
-if(start!==-1){const tail=approved.slice(start+marker.length);const encoded=tail.split(')')[0];await writeFile('public/my-podguest-share.png',Buffer.from(encoded,'base64'));}
+const shareSource=approved.includes(marker)?approved:await readFile('design/integrated-preview.html','utf8');
+const start=shareSource.indexOf(marker);
+if(start!==-1){const tail=shareSource.slice(start+marker.length);const encoded=tail.split(')')[0];await writeFile('public/my-podguest-share.png',Buffer.from(encoded,'base64'));}
 
 /* Generate matching blue microphone icons for iOS home-screen bookmarks. */
 const { deflateSync } = await import('node:zlib');

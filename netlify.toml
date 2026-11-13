@@ -33,3 +33,15 @@
   to = "/.netlify/functions/voice-status"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/video"
+  to = "/.netlify/functions/video"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/shadowing-explain"
+  to = "/.netlify/functions/shadowing-explain"
+  status = 200
+  force = true

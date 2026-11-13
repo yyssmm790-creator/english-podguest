@@ -1,3 +1,4 @@
+import {explain,importVideo} from './lib/shadowing-service.js';
 import http from 'node:http';
 import {handleStoryRequest} from './lib/story-service.js';
 import { readFile } from 'node:fs/promises';
@@ -10,6 +11,8 @@ http.createServer(async (req, res) => {
   try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); }
   catch { res.writeHead(400); return res.end(); }
   const json = (status, body) => { res.writeHead(status, {'Content-Type':'application/json','Cache-Control':'no-store'}); res.end(JSON.stringify(body)); };
+  if(pathname==='/api/video'){const r=await importVideo({httpMethod:req.method,queryStringParameters:Object.fromEntries(new URL(req.url,'http://localhost').searchParams)});res.writeHead(r.statusCode,r.headers);return res.end(r.body);}
+  if(pathname==='/api/shadowing-explain'){let body='';for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>12000)return json(413,{error:'too_large'});}const r=await explain({httpMethod:req.method,headers:req.headers,body});res.writeHead(r.statusCode,r.headers);return res.end(r.body);}
   if(pathname==='/api/story'){
     let body='';
     try{for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>16000)return json(413,{error:'too_large'});}}catch{return json(400,{error:'invalid_body'});}
