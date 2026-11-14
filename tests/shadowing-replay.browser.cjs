@@ -11,7 +11,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.goto(process.env.BASE_URL||'http://localhost:3003');await page.waitForSelector('#segment-grid button');await page.getByRole('button',{name:'4구간 선택',exact:true}).click();await page.click('#start-practice');await page.click('#practice-listen');
  const iframe=page.locator('#practice-player-slot iframe');await iframe.waitFor();const frame=await iframe.elementHandle().then(e=>e.contentFrame());
  await frame.waitForFunction(()=>commands.some(c=>c.func==='seekTo'));
- const lesson=await page.request.get(new URL('/shadowing/jenny.json',page.url()).href).then(r=>r.json());const range=lesson.segments[3].lines[0];
+ const lesson=await page.evaluate(()=>fetch('/shadowing/jenny.json').then(r=>r.json()));const range=lesson.segments[3].lines[0];
  assert.equal(await frame.evaluate(()=>commands.find(c=>c.func==='seekTo').args[0]),range.start,'selected segment start');
  assert.equal(new URL(await iframe.getAttribute('src')).searchParams.has('end'),false,'no obsolete embed end time');
  for(let n=0;n<3;n++){
