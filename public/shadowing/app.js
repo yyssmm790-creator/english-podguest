@@ -30,12 +30,97 @@ $('video-form').onsubmit=async event=>{event.preventDefault();const id=videoId($
 $('transcript-file').onchange=async event=>{const file=event.target.files[0];if(!file)return;if(file.size>250000){text('import-status','250KB 이하의 자막을 넣어주세요.');return}$('transcript-text').value=await file.text()};
 $('import-transcript').onclick=async()=>{try{const id=videoId($('video-url').value);if(!id)throw Error('먼저 유튜브 영상 주소를 넣어주세요.');const value=makeLesson(parseTranscript($('transcript-text').value),{id,title:'내가 불러온 영상',timing:'coarse'});await loadLesson(value);$('transcript-import').hidden=true;text('import-status','')}catch(error){text('import-status',error.message)}};
 // One visible YouTube player. Keep the actual source audio; never substitute an AI voice.
-let playerFrame=null,playerKind=null,playerTick=null,playerEnd=0,playerReady=false;
-function playerCommand(func,args=[]){playerFrame?.contentWindow?.postMessage(JSON.stringify({event:'command',func,args}), 'https://www.youtube-nocookie.com')}
-function stopVideo(){if(playerTick)clearInterval(playerTick);playerTick=null;playerFrame?.remove();playerFrame=null;playerKind=null;playerReady=false;for(const kind of ['practice','podcast']){$(`${kind}-player-slot`).replaceChildren();$(`${kind}-player-slot`).hidden=true;$(`${kind}-listen`).setAttribute('aria-pressed','false')}}
-function listen(kind){if(activeRecording)stopRecording();for(const k of ['practice','podcast'])$(`${k}-audio`).pause();if(playerFrame&&playerKind===kind){stopVideo();return}stopVideo();const lines=kind==='practice'?[line()]:segment().lines;const start=Math.min(...lines.map(x=>x.start));playerEnd=Math.max(...lines.map(x=>x.end));const slot=$(`${kind}-player-slot`);slot.hidden=false;playerKind=kind;playerFrame=document.createElement('iframe');playerFrame.title=kind==='practice'?'영상 원음 듣기':'선택한 구간 전체 원음 듣기';playerFrame.allow='autoplay; encrypted-media; picture-in-picture';playerFrame.referrerPolicy='strict-origin-when-cross-origin';const params=new URLSearchParams({enablejsapi:'1',origin:location.origin,playsinline:'1',rel:'0',autoplay:'1',start:String(Math.floor(start)),end:String(Math.ceil(playerEnd))});playerFrame.src=`https://www.youtube-nocookie.com/embed/${lesson.id}?${params}`;slot.append(playerFrame);const caption=document.createElement('div');caption.className='source-caption';caption.textContent='영상 원음 · 자막 경계에 따라 앞뒤 말이 함께 들릴 수 있어요.';const sourceLink=document.createElement('a');sourceLink.href=`https://www.youtube.com/watch?v=${lesson.id}&t=${Math.floor(start)}`;sourceLink.target='_blank';sourceLink.rel='noopener';sourceLink.style.cssText='color:#b4d9ff;margin-left:8px';sourceLink.textContent='유튜브에서 열기 ↗';caption.append(sourceLink);slot.append(caption);$(`${kind}-listen`).setAttribute('aria-pressed','true');playerTick=setInterval(()=>{playerFrame?.contentWindow?.postMessage(JSON.stringify({event:'listening',id:'podguest-player'}),'https://www.youtube-nocookie.com');if(playerReady)playerCommand('setPlaybackRate',[Number($(`${kind}-speed`).value)])},700);slot.scrollIntoView({block:'nearest',behavior:'smooth'})}
-window.addEventListener('message',event=>{if(event.origin!=='https://www.youtube-nocookie.com'||event.source!==playerFrame?.contentWindow)return;let message;try{message=typeof event.data==='string'?JSON.parse(event.data):event.data}catch{return}if(message?.event==='onReady'||message?.event==='infoDelivery'){playerReady=true;if(playerKind)playerCommand('setPlaybackRate',[Number($(`${playerKind}-speed`).value)]);if(message.info?.currentTime>=playerEnd)playerCommand('pauseVideo')}if(message?.event==='onError'){const slot=$(`${playerKind}-player-slot`);const p=document.createElement('p');p.className='source-caption';p.textContent='영상에서 직접 재생하거나 아래 원본 링크로 열어주세요.';slot.append(p)}});
-for(const kind of ['practice','podcast']){$(`${kind}-listen`).onclick=()=>listen(kind);$(`${kind}-speed`).onchange=()=>{if(playerKind===kind)playerCommand('setPlaybackRate',[Number($(`${kind}-speed`).value)])}}
+let playerFrame=null,playerKind=null,playerTick=null,playerVideoId=null;
+let playerReady=false,playerActive=false,playerStart=0,playerEnd=0;
+let playerNeedsStart=false,playerSeeking=false,playerEnded=false,playerPauseConfirmed=false;
+function playerCommand(func,args=[]){
+ playerFrame?.contentWindow?.postMessage(JSON.stringify({event:'command',func,args}),'https://www.youtube-nocookie.com');
+}
+function stopVideo(){
+ playerActive=false;playerNeedsStart=false;playerSeeking=false;playerEnded=false;playerPauseConfirmed=false;
+ playerCommand('pauseVideo');
+ if(playerTick)clearInterval(playerTick);playerTick=null;
+ for(const kind of ['practice','podcast']){
+  $(`${kind}-player-slot`).hidden=true;
+  $(`${kind}-listen`).setAttribute('aria-pressed','false');
+ }
+}
+function disposeVideo(){
+ stopVideo();playerFrame?.remove();playerFrame=null;playerReady=false;playerVideoId=null;
+ for(const kind of ['practice','podcast'])$(`${kind}-player-slot`).replaceChildren();
+}
+function replayPlayerRange(){
+ if(!playerReady||!playerActive)return;
+ playerNeedsStart=false;playerSeeking=true;playerEnded=false;playerPauseConfirmed=false;
+ playerCommand('seekTo',[playerStart,true]);
+ playerCommand('setPlaybackRate',[Number($(`${playerKind}-speed`).value)]);
+ playerCommand('playVideo');
+}
+function listen(kind){
+ if(activeRecording)stopRecording();
+ for(const k of ['practice','podcast'])$(`${k}-audio`).pause();
+ const lines=kind==='practice'?[line()]:segment().lines;
+ // Reusing the iframe preserves the buffer when replaying a sentence.
+ if(playerFrame&&(playerKind!==kind||playerVideoId!==lesson.id))disposeVideo();
+ stopVideo();playerKind=kind;playerVideoId=lesson.id;
+ playerStart=Math.min(...lines.map(x=>x.start));playerEnd=Math.max(...lines.map(x=>x.end));
+ playerActive=true;playerNeedsStart=true;
+ const slot=$(`${kind}-player-slot`);slot.hidden=false;
+ if(!playerFrame){
+  playerFrame=document.createElement('iframe');
+  playerFrame.title=kind==='practice'?'영상 원음 듣기':'선택한 구간 전체 원음 듣기';
+  playerFrame.allow='autoplay; encrypted-media; picture-in-picture';
+  playerFrame.referrerPolicy='strict-origin-when-cross-origin';
+  // Do not use a fixed embed end parameter: later sentences reuse this player.
+  const params=new URLSearchParams({enablejsapi:'1',origin:location.origin,playsinline:'1',rel:'0',autoplay:'1',start:String(Math.floor(playerStart))});
+  playerFrame.src=`https://www.youtube-nocookie.com/embed/${lesson.id}?${params}`;
+  slot.replaceChildren(playerFrame);
+ }
+ let caption=slot.querySelector('.source-caption');
+ if(!caption){caption=document.createElement('div');caption.className='source-caption';slot.append(caption)}
+ caption.textContent='영상 원음 · 자막 경계에 따라 앞뒤 말이 함께 들릴 수 있어요.';
+ const sourceLink=document.createElement('a');
+ sourceLink.href=`https://www.youtube.com/watch?v=${lesson.id}&t=${Math.floor(playerStart)}`;
+ sourceLink.target='_blank';sourceLink.rel='noopener';
+ sourceLink.style.cssText='color:#b4d9ff;margin-left:8px';sourceLink.textContent='유튜브에서 열기 ↗';caption.append(sourceLink);
+ $(`${kind}-listen`).setAttribute('aria-pressed','true');
+ const announce=()=>playerFrame?.contentWindow?.postMessage(JSON.stringify({event:'listening',id:'podguest-player'}),'https://www.youtube-nocookie.com');
+ announce();replayPlayerRange();playerTick=setInterval(announce,700);
+ slot.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+window.addEventListener('message',event=>{
+ if(event.origin!=='https://www.youtube-nocookie.com'||event.source!==playerFrame?.contentWindow)return;
+ let message;try{message=typeof event.data==='string'?JSON.parse(event.data):event.data}catch{return}
+ if(message?.event==='onReady'||message?.event==='initialDelivery'||message?.event==='infoDelivery'){
+  playerReady=true;
+  if(playerActive&&playerNeedsStart){replayPlayerRange();return}
+ }
+ if(!playerActive)return;
+ const state=message?.event==='onStateChange'?message.info:message?.info?.playerState;
+ // A native tap on the stopped video's Play button starts the SAME range again.
+ if(playerEnded&&(state===2||state===0))playerPauseConfirmed=true;
+ if(playerEnded&&playerPauseConfirmed&&state===1){replayPlayerRange();return}
+ const time=message?.info?.currentTime;
+ if(Number.isFinite(time)){
+  // Ignore stale times from before a seek, especially after changing sentences.
+  if(playerSeeking){if(time>=playerStart-.3&&time<playerEnd)playerSeeking=false;else return}
+  if(!playerEnded&&time>=playerEnd-.05){
+   playerEnded=true;playerPauseConfirmed=state===2||state===0;playerCommand('pauseVideo');
+   $(`${playerKind}-listen`).setAttribute('aria-pressed','false');
+  }
+ }
+ if(message?.event==='onError'){
+  const p=document.createElement('p');p.className='source-caption';
+  p.textContent='영상에서 직접 재생하거나 위의 유튜브 링크로 열어주세요.';
+  $(`${playerKind}-player-slot`).append(p);
+ }
+});
+for(const kind of ['practice','podcast']){
+ $(`${kind}-listen`).onclick=()=>listen(kind);
+ $(`${kind}-speed`).onchange=()=>{
+  if(playerKind===kind&&playerReady)playerCommand('setPlaybackRate',[Number($(`${kind}-speed`).value)]);
+ };
+}
 // Separate temporary drafts for sentence practice and the whole segment.
 const drafts={practice:null,podcast:null};let activeRecording=null,startingRecording=false,stoppingRecording=false,recordTimer=null;
 function clearDraft(kind){const draft=drafts[kind];if(draft?.url)URL.revokeObjectURL(draft.url);drafts[kind]=null;const audio=$(`${kind}-audio`);audio.pause();audio.removeAttribute('src');audio.hidden=true;audio.load();text(`${kind}-rec-status`,'');text(`${kind}-timer`,kind==='podcast'?'00:00':'');$(`${kind}-replay`).disabled=true;if(kind==='podcast')$('save-recording').disabled=true}
