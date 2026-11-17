@@ -8,7 +8,8 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  document.querySelector('button').onclick=()=>report({playerState:1,currentTime:time});
  addEventListener('message',event=>{let m;try{m=JSON.parse(event.data)}catch{return}if(m.event==='listening'){report({currentTime:time});return}if(m.event!=='command')return;commands.push(m);if(m.func==='seekTo'){time=m.args[0];report({currentTime:time})}if(m.func==='pauseVideo')report({playerState:2,currentTime:time});if(m.func==='playVideo')report({playerState:1,currentTime:time});});
  <\/script>`})});
- await page.goto(process.env.BASE_URL||'http://localhost:3003');await page.waitForSelector('#segment-grid button');await page.getByRole('button',{name:'4구간 선택',exact:true}).click();await page.click('#start-practice');await page.click('#practice-listen');
+ await page.addInitScript(()=>localStorage.setItem('podguest-guide-hidden-v1','true'));
+await page.goto(process.env.BASE_URL||'http://localhost:3003');await page.waitForSelector('#segment-grid button');await page.getByRole('button',{name:'4구간 선택',exact:true}).click();await page.click('#start-practice');await page.click('#practice-listen');
  const iframe=page.locator('#practice-player-slot iframe');await iframe.waitFor();const frame=await iframe.elementHandle().then(e=>e.contentFrame());
  await frame.waitForFunction(()=>commands.some(c=>c.func==='seekTo'));
  const lesson=await page.evaluate(()=>fetch('/shadowing/jenny.json').then(r=>r.json()));const range=lesson.segments[3].lines[0];

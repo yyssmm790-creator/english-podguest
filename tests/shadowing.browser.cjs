@@ -3,6 +3,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
 const page=await browser.newPage({ignoreHTTPSErrors:true,permissions:['microphone'],viewport:{width:390,height:844}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.route('**/api/shadowing-explain',route=>{const input=route.request().postDataJSON();return route.fulfill({json:{lines:input.lines.map(en=>({ko:'문장 뜻을 확인해요.',phrase:en.split(' ').slice(0,3).join(' '),meaning:'표현 뜻',word:'',wordMeaning:''}))}})});
 await page.route('**/embed/**',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>YouTube player test double</title>'}));
+await page.addInitScript(()=>localStorage.setItem('podguest-guide-hidden-v1','true'));
 await page.goto(process.env.BASE_URL||'http://localhost:3001');await page.waitForSelector('#segment-grid button');
 for(const width of [320,360,390,430,768,1280]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'home overflow '+width)}
 await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'4구간 선택',exact:true}).click();assert.equal(await page.locator('#home').isVisible(),true,'select number does not navigate');await page.locator('#start-practice').click();await page.waitForFunction(()=>document.querySelector('#practice-ko').textContent.length>0);assert.match(await page.locator('#practice-progress').textContent(),/^4구간 · 1 \/ 4문장/);const first=await page.locator('#practice-en').textContent();
